@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mojian.mapper.SysMomentMapper">
+    <!-- 可以在这里添加自定义的复杂SQL查询 -->
+    <select id="selectPage" resultType="com.mojian.vo.moment.MomentPageVo">
+        select
+            m.id,
+            m.content,
+            m.images,
+            m.like_count as likeCount,
+            m.create_time,
+            coalesce(
+                (select wc.author from sys_web_config wc order by wc.id desc limit 1),
+                (select a.name from sys_author a order by a.id desc limit 1),
+                '博主'
+            ) as nickname,
+            coalesce(
+                (select wc.author_avatar from sys_web_config wc order by wc.id desc limit 1),
+                (select a.avatar from sys_author a order by a.id desc limit 1)
+            ) as avatar
+        from sys_moment m
+        order by m.create_time desc
+    </select>
+</mapper>
