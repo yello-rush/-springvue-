@@ -119,16 +119,7 @@ const routes = [
                   hidden: true
                 }
               },
-              {
-                path: '/login',
-                name: 'Login',
-                component: () => import('@/views/login/index.vue'),
-                meta: {
-                  title: '登录',
-                  hidden: true,
-                  fullscreen: true
-                }
-              },
+              {                path: '/login',                name: 'Login',                component: () => import('@/views/Login/index.vue'),                meta: {                  title: '登录',                  hidden: true,                  fullscreen: true                }              },
               {
                 path: '/:pathMatch(.*)*',
                 name: 'NotFound',
