@@ -1,0 +1,35 @@
+@startuml
+
+' 未登录用户功能用例图
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam shadowing false
+
+actor "未登录用户" as UnloggedUser
+
+rectangle "个人博客系统" {
+    usecase "浏览首页" as BrowseHome
+    usecase "查看文章列表" as ViewArticleList
+    usecase "查看文章详情" as ViewArticleDetail
+    usecase "查看分类" as ViewCategories
+    usecase "查看标签" as ViewTags
+    usecase "查看说说" as ViewMoments
+    usecase "查看评论" as ViewComments
+    usecase "搜索文章" as SearchArticles
+    usecase "登录账号" as Login
+    usecase "注册账号" as Register
+}
+
+UnloggedUser --> BrowseHome
+UnloggedUser --> ViewArticleList
+UnloggedUser --> ViewArticleDetail
+UnloggedUser --> ViewCategories
+UnloggedUser --> ViewTags
+UnloggedUser --> ViewMoments
+UnloggedUser --> ViewComments
+UnloggedUser --> SearchArticles
+UnloggedUser --> Login
+UnloggedUser --> Register
+
+@enduml
