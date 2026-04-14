@@ -5,79 +5,86 @@
 skinparam backgroundColor white
 skinparam handwritten false
 skinparam shadowing false
+skinparam packageStyle rectangle
 
+' 角色居中
 actor "管理员" as Admin
 
-rectangle "个人博客系统" {
-    usecase "浏览首页" as BrowseHome
-    usecase "查看文章列表" as ViewArticleList
-    usecase "查看文章详情" as ViewArticleDetail
-    usecase "查看分类" as ViewCategories
-    usecase "查看标签" as ViewTags
-    usecase "查看说说" as ViewMoments
-    usecase "查看评论" as ViewComments
-    usecase "搜索文章" as SearchArticles
-    
-    usecase "发布文章" as PublishArticle
-    usecase "编辑文章" as EditArticle
-    usecase "删除文章" as DeleteArticle
-    usecase "发表评论" as PostComment
-    usecase "回复评论" as ReplyComment
-    usecase "点赞评论" as LikeComment
-    usecase "发布说说" as PublishMoment
-    usecase "编辑说说" as EditMoment
-    usecase "删除说说" as DeleteMoment
-    usecase "点赞说说" as LikeMoment
-    usecase "上传图片" as UploadImage
-    usecase "上传文件" as UploadFile
-    usecase "管理个人信息" as ManageProfile
-    usecase "修改密码" as ChangePassword
-    usecase "退出登录" as Logout
-    
-    usecase "用户管理" as UserManagement
-    usecase "文章审核" as ArticleApproval
-    usecase "评论审核" as CommentApproval
-    usecase "分类管理" as CategoryManagement
-    usecase "标签管理" as TagManagement
-    usecase "资源管理" as ResourceManagement
-    usecase "系统配置" as SystemConfig
-    usecase "查看系统日志" as ViewSystemLogs
-    usecase "管理缓存" as ManageCache
-}
+' 功能模块围绕四周 - 上方
+usecase "浏览首页" as BrowseHome
+usecase "查看文章列表" as ViewArticleList
+usecase "查看文章详情" as ViewArticleDetail
 
-Admin --> BrowseHome
-Admin --> ViewArticleList
-Admin --> ViewArticleDetail
-Admin --> ViewCategories
-Admin --> ViewTags
-Admin --> ViewMoments
-Admin --> ViewComments
-Admin --> SearchArticles
+' 功能模块围绕四周 - 左侧
+usecase "查看分类" as ViewCategories
+usecase "查看标签" as ViewTags
+usecase "查看说说" as ViewMoments
+usecase "查看评论" as ViewComments
+usecase "搜索文章" as SearchArticles
 
-Admin --> PublishArticle
-Admin --> EditArticle
-Admin --> DeleteArticle
-Admin --> PostComment
-Admin --> ReplyComment
-Admin --> LikeComment
-Admin --> PublishMoment
-Admin --> EditMoment
-Admin --> DeleteMoment
-Admin --> LikeMoment
-Admin --> UploadImage
-Admin --> UploadFile
-Admin --> ManageProfile
-Admin --> ChangePassword
-Admin --> Logout
+' 功能模块围绕四周 - 右侧
+usecase "用户管理" as UserManagement
+usecase "文章审核" as ArticleApproval
+usecase "评论审核" as CommentApproval
+usecase "分类管理" as CategoryManagement
+usecase "标签管理" as TagManagement
 
-Admin --> UserManagement
-Admin --> ArticleApproval
-Admin --> CommentApproval
-Admin --> CategoryManagement
-Admin --> TagManagement
-Admin --> ResourceManagement
-Admin --> SystemConfig
-Admin --> ViewSystemLogs
-Admin --> ManageCache
+' 功能模块围绕四周 - 下方
+usecase "发布文章" as PublishArticle
+usecase "编辑文章" as EditArticle
+usecase "删除文章" as DeleteArticle
+usecase "发表评论" as PostComment
+usecase "回复评论" as ReplyComment
+usecase "点赞评论" as LikeComment
+usecase "发布说说" as PublishMoment
+usecase "编辑说说" as EditMoment
+usecase "删除说说" as DeleteMoment
+usecase "点赞说说" as LikeMoment
+usecase "上传图片" as UploadImage
+usecase "上传文件" as UploadFile
+usecase "管理个人信息" as ManageProfile
+usecase "修改密码" as ChangePassword
+usecase "退出登录" as Logout
+usecase "资源管理" as ResourceManagement
+usecase "系统配置" as SystemConfig
+usecase "查看系统日志" as ViewSystemLogs
+usecase "管理缓存" as ManageCache
+
+' 连接角色与用例，使用方向箭头控制位置
+Admin -up-> BrowseHome
+Admin -up-> ViewArticleList
+Admin -up-> ViewArticleDetail
+
+Admin -left-> ViewCategories
+Admin -left-> ViewTags
+Admin -left-> ViewMoments
+Admin -left-> ViewComments
+Admin -left-> SearchArticles
+
+Admin -right-> UserManagement
+Admin -right-> ArticleApproval
+Admin -right-> CommentApproval
+Admin -right-> CategoryManagement
+Admin -right-> TagManagement
+
+Admin -down-> PublishArticle
+Admin -down-> EditArticle
+Admin -down-> DeleteArticle
+Admin -down-> PostComment
+Admin -down-> ReplyComment
+Admin -down-> LikeComment
+Admin -down-> PublishMoment
+Admin -down-> EditMoment
+Admin -down-> DeleteMoment
+Admin -down-> LikeMoment
+Admin -down-> UploadImage
+Admin -down-> UploadFile
+Admin -down-> ManageProfile
+Admin -down-> ChangePassword
+Admin -down-> Logout
+Admin -down-> ResourceManagement
+Admin -down-> SystemConfig
+Admin -down-> ViewSystemLogs
+Admin -down-> ManageCache
 
 @enduml

@@ -5,59 +5,68 @@
 skinparam backgroundColor white
 skinparam handwritten false
 skinparam shadowing false
+skinparam packageStyle rectangle
 
+' 角色居中
 actor "登录用户" as LoggedUser
 
-rectangle "个人博客系统" {
-    usecase "浏览首页" as BrowseHome
-    usecase "查看文章列表" as ViewArticleList
-    usecase "查看文章详情" as ViewArticleDetail
-    usecase "查看分类" as ViewCategories
-    usecase "查看标签" as ViewTags
-    usecase "查看说说" as ViewMoments
-    usecase "查看评论" as ViewComments
-    usecase "搜索文章" as SearchArticles
-    
-    usecase "发布文章" as PublishArticle
-    usecase "编辑文章" as EditArticle
-    usecase "删除文章" as DeleteArticle
-    usecase "发表评论" as PostComment
-    usecase "回复评论" as ReplyComment
-    usecase "点赞评论" as LikeComment
-    usecase "发布说说" as PublishMoment
-    usecase "编辑说说" as EditMoment
-    usecase "删除说说" as DeleteMoment
-    usecase "点赞说说" as LikeMoment
-    usecase "上传图片" as UploadImage
-    usecase "上传文件" as UploadFile
-    usecase "管理个人信息" as ManageProfile
-    usecase "修改密码" as ChangePassword
-    usecase "退出登录" as Logout
-}
+' 功能模块围绕四周 - 上方
+usecase "浏览首页" as BrowseHome
+usecase "查看文章列表" as ViewArticleList
 
-LoggedUser --> BrowseHome
-LoggedUser --> ViewArticleList
-LoggedUser --> ViewArticleDetail
-LoggedUser --> ViewCategories
-LoggedUser --> ViewTags
-LoggedUser --> ViewMoments
-LoggedUser --> ViewComments
-LoggedUser --> SearchArticles
+' 功能模块围绕四周 - 左侧
+usecase "查看文章详情" as ViewArticleDetail
+usecase "查看分类" as ViewCategories
+usecase "查看标签" as ViewTags
 
-LoggedUser --> PublishArticle
-LoggedUser --> EditArticle
-LoggedUser --> DeleteArticle
-LoggedUser --> PostComment
-LoggedUser --> ReplyComment
-LoggedUser --> LikeComment
-LoggedUser --> PublishMoment
-LoggedUser --> EditMoment
-LoggedUser --> DeleteMoment
-LoggedUser --> LikeMoment
-LoggedUser --> UploadImage
-LoggedUser --> UploadFile
-LoggedUser --> ManageProfile
-LoggedUser --> ChangePassword
-LoggedUser --> Logout
+' 功能模块围绕四周 - 右侧
+usecase "查看说说" as ViewMoments
+usecase "查看评论" as ViewComments
+usecase "搜索文章" as SearchArticles
+
+' 功能模块围绕四周 - 下方
+usecase "发布文章" as PublishArticle
+usecase "编辑文章" as EditArticle
+usecase "删除文章" as DeleteArticle
+usecase "发表评论" as PostComment
+usecase "回复评论" as ReplyComment
+usecase "点赞评论" as LikeComment
+usecase "发布说说" as PublishMoment
+usecase "编辑说说" as EditMoment
+usecase "删除说说" as DeleteMoment
+usecase "点赞说说" as LikeMoment
+usecase "上传图片" as UploadImage
+usecase "上传文件" as UploadFile
+usecase "管理个人信息" as ManageProfile
+usecase "修改密码" as ChangePassword
+usecase "退出登录" as Logout
+
+' 连接角色与用例，使用方向箭头控制位置
+LoggedUser -up-> BrowseHome
+LoggedUser -up-> ViewArticleList
+
+LoggedUser -left-> ViewArticleDetail
+LoggedUser -left-> ViewCategories
+LoggedUser -left-> ViewTags
+
+LoggedUser -right-> ViewMoments
+LoggedUser -right-> ViewComments
+LoggedUser -right-> SearchArticles
+
+LoggedUser -down-> PublishArticle
+LoggedUser -down-> EditArticle
+LoggedUser -down-> DeleteArticle
+LoggedUser -down-> PostComment
+LoggedUser -down-> ReplyComment
+LoggedUser -down-> LikeComment
+LoggedUser -down-> PublishMoment
+LoggedUser -down-> EditMoment
+LoggedUser -down-> DeleteMoment
+LoggedUser -down-> LikeMoment
+LoggedUser -down-> UploadImage
+LoggedUser -down-> UploadFile
+LoggedUser -down-> ManageProfile
+LoggedUser -down-> ChangePassword
+LoggedUser -down-> Logout
 
 @enduml
