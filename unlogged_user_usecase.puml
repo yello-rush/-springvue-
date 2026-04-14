@@ -6,32 +6,35 @@ skinparam backgroundColor white
 skinparam handwritten false
 skinparam shadowing false
 skinparam packageStyle rectangle
+skinparam arrowColor #666666
+skinparam usecaseBorderColor #666666
+skinparam actorBorderColor #666666
 
 ' 角色居中
 actor "未登录用户" as UnloggedUser
 
-' 功能模块围绕四周
-usecase "浏览首页" as BrowseHome
-usecase "查看文章列表" as ViewArticleList
-usecase "查看文章详情" as ViewArticleDetail
-usecase "查看分类" as ViewCategories
-usecase "查看标签" as ViewTags
-usecase "查看说说" as ViewMoments
-usecase "查看评论" as ViewComments
-usecase "搜索文章" as SearchArticles
-usecase "登录账号" as Login
-usecase "注册账号" as Register
+' 功能模块围绕四周 - 使用包组织相关功能
 
-' 连接角色与用例，使用方向箭头控制位置
-UnloggedUser -up-> BrowseHome
-UnloggedUser -left-> ViewArticleList
-UnloggedUser -left-> ViewArticleDetail
-UnloggedUser -left-> ViewCategories
-UnloggedUser -right-> ViewTags
-UnloggedUser -right-> ViewMoments
-UnloggedUser -right-> ViewComments
-UnloggedUser -down-> SearchArticles
-UnloggedUser -down-> Login
-UnloggedUser -down-> Register
+' 上方：浏览功能
+package "浏览功能" {
+    usecase "浏览首页" as BrowseHome
+    usecase "查看文章列表" as ViewArticleList
+    usecase "查看文章详情" as ViewArticleDetail
+    usecase "查看分类" as ViewCategories
+    usecase "查看标签" as ViewTags
+    usecase "查看说说" as ViewMoments
+    usecase "查看评论" as ViewComments
+    usecase "搜索文章" as SearchArticles
+}
+
+' 下方：账户功能
+package "账户功能" {
+    usecase "登录账号" as Login
+    usecase "注册账号" as Register
+}
+
+' 连接角色与包，使用方向箭头控制位置
+UnloggedUser -up-> "浏览功能"
+UnloggedUser -down-> "账户功能"
 
 @enduml
