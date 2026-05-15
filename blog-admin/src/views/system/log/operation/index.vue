@@ -83,11 +83,6 @@
                   </el-form-item>
                 </el-row>
                 <el-row>
-                  <el-form-item label="User-Agent">
-                    <span>{{ scope.row.ua }}</span>
-                  </el-form-item>
-                </el-row>
-                <el-row>
                   <el-form-item label="请求参数">
                     <span>{{ scope.row.paramsJson }}</span>
                   </el-form-item>
