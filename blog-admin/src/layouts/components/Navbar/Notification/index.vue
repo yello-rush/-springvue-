@@ -41,7 +41,7 @@
                 <el-icon class="icon comment"><ChatLineRound /></el-icon>
                 <div class="info">
                   <div class="title">新增评论</div>
-                  <div class="desc">自上次登录新增 {{ notificationData.newComments }} 条</div>
+                  <div class="desc">{{ notificationData.newComments }} 条</div>
                 </div>
               </div>
               
@@ -49,7 +49,7 @@
                 <el-icon class="icon like"><Pointer /></el-icon>
                 <div class="info">
                   <div class="title">新增点赞</div>
-                  <div class="desc">自上次登录新增 {{ notificationData.newLikes }} 个</div>
+                  <div class="desc">{{ notificationData.newLikes }} 个</div>
                 </div>
               </div>
               
@@ -57,7 +57,7 @@
                 <el-icon class="icon favorite"><Star /></el-icon>
                 <div class="info">
                   <div class="title">新增收藏</div>
-                  <div class="desc">自上次登录新增 {{ notificationData.newFavorites }} 次</div>
+                  <div class="desc">{{ notificationData.newFavorites }} 次</div>
                 </div>
               </div>
             </div>
