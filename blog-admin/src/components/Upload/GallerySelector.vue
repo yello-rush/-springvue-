@@ -95,7 +95,7 @@ watch(() => visible.value, (val) => {
 
 const getAlbums = async () => {
   const res = await listAlbumApi({ pageNum: 1, pageSize: 100 })
-  albumList.value = res.data.list
+  albumList.value = res.data.records || []
 }
 
 const openAlbum = async (id: number) => {
@@ -107,8 +107,8 @@ const openAlbum = async (id: number) => {
 
 const getPhotos = async () => {
   const res = await listPhotoApi(photoParams.value)
-  photoList.value = res.data.list
-  photoTotal.value = res.data.total
+  photoList.value = res.data.records || []
+  photoTotal.value = res.data.total || 0
 }
 
 const handleSuccess = (res: any) => {

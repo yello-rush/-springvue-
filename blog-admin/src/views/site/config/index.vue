@@ -31,94 +31,6 @@
               </el-col>
             </el-row>
           </el-tab-pane>
-
-          <!-- 作者信息 Tab -->
-          <el-tab-pane name="author">
-            <template #label>
-              <el-icon>
-                <User />
-              </el-icon>
-              <span class="tab-label">作者信息</span>
-            </template>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="作者头像" prop="authorAvatar">
-                  <upload-image v-model="form.authorAvatar" :limit="1" />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="作者名称" prop="author">
-                  <el-input v-model="form.author" placeholder="请输入作者名称" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="个性签名" prop="authorInfo">
-                  <el-input v-model="form.authorInfo" placeholder="请输入个性签名" />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-form-item label="关于我" prop="aboutMe">
-              <div style="border: 1px solid #ccc;">
-                  <Toolbar style="border-bottom: 1px solid #ccc;width: 1200px;" :editor="editorRef" :defaultConfig="toolbarConfig" :mode="mode" />
-                  <Editor style=" overflow-y: hidden;width: 1200px" v-model="form.aboutMe" :defaultConfig="editorConfig" :mode="mode"
-                  @onCreated="handleCreated"/>
-              </div>
-            </el-form-item>
-          </el-tab-pane>
-
-          <!-- 社交信息 Tab -->
-          <el-tab-pane name="social">
-            <template #label>
-              <el-icon>
-                <Share />
-              </el-icon>
-              <span class="tab-label">社交信息</span>
-            </template>
-
-            <el-form-item label="QQ号" prop="qqNumber">
-              <el-input v-model="form.qqNumber" placeholder="请输入QQ号">
-                <template #prefix>
-                  <el-icon>
-                    <ChatDotRound />
-                  </el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-
-            <el-form-item label="QQ群" prop="qqGroup">
-              <el-input v-model="form.qqGroup" placeholder="请输入QQ群">
-                <template #prefix>
-                  <el-icon>
-                    <User />
-                  </el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-
-            <el-form-item label="微信" prop="wechat">
-              <el-input v-model="form.wechat" placeholder="请输入微信号">
-                <template #prefix>
-                  <el-icon>
-                    <ChatLineRound />
-                  </el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="form.email" placeholder="请输入邮箱地址">
-                <template #prefix>
-                  <el-icon>
-                    <Message />
-                  </el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-          </el-tab-pane>
-
-
         </el-tabs>
 
         <!-- 底部按钮 -->
@@ -135,35 +47,6 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import UploadImage from '@/components/Upload/Image.vue'
 import { getWebConfigApi, updateWebConfigApi } from '@/api/site/config'
-
-import { uploadApi } from '@/api/file'
-
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import '@wangeditor/editor/dist/css/style.css'
-const editorRef = shallowRef()
-const mode = 'default'
-const toolbarConfig = {}
-const editorConfig = {
-  placeholder: "请输入内容...",
-  MENU_CONF: {
-    // 配置上传图片
-    uploadImage: {
-      customUpload: contentUpload,
-    },
-
-    codeSelectLang: {
-      // 代码语言
-      codeLangs: [
-        { text: "CSS", value: "css" },
-        { text: "HTML", value: "html" },
-        { text: "XML", value: "xml" },
-        { text: "Java", value: "java" },
-        // 其他
-      ],
-    },
-  },
-}
-
 
 const activeTab = ref('basic')
 const formRef = ref<FormInstance>()
@@ -185,13 +68,10 @@ const form = ref({
   aboutMe: '',
 })
 
-const files = ref();
-
 const rules = {
   name: [{ required: true, message: '请输入网站名称', trigger: 'blur' }],
   logo: [{ required: true, message: '请上传网站Logo', trigger: 'change' }],
-  summary: [{ required: true, message: '请输入网站介绍', trigger: 'blur' }],
-  author: [{ required: true, message: '请输入作者名称', trigger: 'blur' }]
+  summary: [{ required: true, message: '请输入网站介绍', trigger: 'blur' }]
 }
 
 // 提交表单
@@ -205,32 +85,11 @@ const submitForm = async () => {
     }
   })
 }
-// 获取字典数据
-const getDictDataByDictTypes = async () => {
-}
-
-const handleCreated = (editor:any) => {
-  editorRef.value = editor // 记录 editor 实例，重要！
-}
-
-//编辑器上传图片
-function contentUpload(file: any, insertFn: any) {
-  files.value = file;
-  // FormData 对象
-  var formData = new FormData();
-  // 文件对象
-  formData.append("file", files.value);
-  uploadApi(formData).then((res: any) => {
-    insertFn(res.data, "", res.data);
-  });
-}
 
 onMounted(() => {
   getWebConfigApi().then((res) => {
     form.value = res.data
   })
-
-  getDictDataByDictTypes();
 })
 </script>
 

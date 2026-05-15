@@ -42,12 +42,11 @@ const filterAsyncRoutes = (routes: RouteRecordRaw[], isRoot = true) => {
           if (alt) {
             tmpRoute.component = alt;
           } else {
-            // 添加针对作者信息管理的强映射：将 /site/author/index 映射到站点配置
-            if ((tmpRoute.path && (tmpRoute.path.includes('site/config') || tmpRoute.path.includes('site/author'))) || (tmpRoute.name && tmpRoute.name.toString().includes('作者')) || (tmpRoute.component && (tmpRoute.component as string).includes('site/author/index'))) {
+            if ((tmpRoute.path && tmpRoute.path.includes('site/config'))) {
               tmpRoute.component = () => import('@/views/site/config/index.vue');
             } else if ((tmpRoute.path && tmpRoute.path.includes('site/gallery')) || (tmpRoute.name && tmpRoute.name.toString().includes('图库'))) {
               tmpRoute.component = () => import('@/views/site/gallery/index.vue');
-            } else if ((tmpRoute.path && tmpRoute.path.includes('system/log/operation')) || (tmpRoute.name && tmpRoute.name.toString().includes('日志'))) {
+            } else if ((tmpRoute.path && tmpRoute.path.includes('system/log/operation')) || (tmpRoute.name && tmpRoute.name.toString().includes('日志'))) {     
               tmpRoute.component = () => import('@/views/system/log/operation.vue');
             }
           }
