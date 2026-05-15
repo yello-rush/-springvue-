@@ -30,13 +30,12 @@ public class SysAlbumServiceImpl extends ServiceImpl<SysAlbumMapper, SysAlbum> i
         // 构建查询条件
         wrapper.select(SysAlbum::getId, SysAlbum::getName, SysAlbum::getDescription, SysAlbum::getIsLock,
                 SysAlbum::getSort, SysAlbum::getCreateTime,SysAlbum::getCover);
-        wrapper.eq(sysAlbum.getId() != null, SysAlbum::getId, sysAlbum.getId());
-        wrapper.eq(sysAlbum.getName() != null, SysAlbum::getName, sysAlbum.getName());
-        wrapper.eq(sysAlbum.getDescription() != null, SysAlbum::getDescription, sysAlbum.getDescription());
-        wrapper.eq(sysAlbum.getIsLock() != null, SysAlbum::getIsLock, sysAlbum.getIsLock());
-        wrapper.eq(sysAlbum.getPassword() != null, SysAlbum::getPassword, sysAlbum.getPassword());
-        wrapper.eq(sysAlbum.getSort() != null, SysAlbum::getSort, sysAlbum.getSort());
-        wrapper.eq(sysAlbum.getCreateTime() != null, SysAlbum::getCreateTime, sysAlbum.getCreateTime());
+        
+        if (StringUtils.isNotBlank(sysAlbum.getName())) {
+            wrapper.like(SysAlbum::getName, sysAlbum.getName());
+        }
+        
+        wrapper.orderByAsc(SysAlbum::getSort).orderByDesc(SysAlbum::getCreateTime);
         return page(PageUtil.getPage(), wrapper);
     }
 
