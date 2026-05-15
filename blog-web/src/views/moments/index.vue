@@ -13,7 +13,7 @@
           <span class="time">{{ item.createTime | timeAgo }}</span>
         </div>
         <div class="content-bubble">
-          <div class="text">{{ item.content }}</div>
+          <div class="text" v-html="item.content"></div>
           <div class="images" v-if="item.images">
             <el-image 
               v-for="(img, idx) in splitImages(item.images)" 
@@ -186,6 +186,12 @@ export default {
         color: var(--text-primary);
         margin-bottom: 10px;
         white-space: pre-wrap;
+        word-break: break-all;
+        
+        ::v-deep p {
+          margin: 0;
+          padding: 0;
+        }
       }
       
       .images {
