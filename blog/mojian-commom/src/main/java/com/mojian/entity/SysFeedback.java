@@ -21,8 +21,12 @@ public class SysFeedback implements Serializable {
     @ApiModelProperty(value = "反馈人id")
     private Long userId;
 
-    @ApiModelProperty(value = "反馈类型")
+    @ApiModelProperty(value = "反馈类型(旧)")
     private String type;
+
+    @ApiModelProperty(value = "反馈类型")
+    @TableField("feedback_type")
+    private String feedbackType;
 
     @ApiModelProperty(value = "反馈内容")
     private String content;

@@ -90,6 +90,10 @@
                 <i class="far fa-comment"></i>
                 <span>{{ article.commentNum || 0 }} 评论</span>
               </div>
+              <div class="stat-item">
+                <i class="fas fa-star"></i>
+                <span>{{ article.favoriteNum || 0 }} 收藏</span>
+              </div>
             </div>
           </div>
         </header>
@@ -197,22 +201,6 @@
                 分享
               </button>
               <div class="share-menu" v-show="showShareMenu">
-                <button class="share-item" @click="shareToQQ">
-                  <i class="fab fa-qq"></i>
-                  QQ好友
-                </button>
-                <button class="share-item" @click="shareToQzone">
-                  <i class="fas fa-star"></i>
-                  QQ空间
-                </button>
-                <button class="share-item" @click="shareToWeibo">
-                  <i class="fab fa-weibo"></i>
-                  微博
-                </button>
-                <button class="share-item" @click="shareToWechat">
-                  <i class="fab fa-weixin"></i>
-                  微信
-                </button>
                 <button class="share-item" @click="copyLink">
                   <i class="fas fa-link"></i>
                   复制链接
@@ -335,7 +323,8 @@ export default {
       showShareMenu: false,
       activeHeading: '',
       readTime: 0,
-      likeDebounce: false,
+      likeLoading: false,
+      collectLoading: false,
       loading: false,
       actionBarLeft: '0px',
       showSidebar: true,
@@ -449,27 +438,30 @@ export default {
     /**
      * 点赞
      */
-    toggleLike() {
-      //防止频繁点击 设置一个5秒的防抖
-      if (this.likeDebounce) {
-        this.$message.warning('请于 5 秒后再试')
+    async toggleLike() {
+      if (!this.$store.state.userInfo) {
+        this.$message.warning('请先登录')
         return
       }
-      // 实现点赞功能
-      likeArticleApi(this.$route.params.id).then(res => {
+      // 请求中禁用，避免重复提交
+      if (this.likeLoading) {
+        return
+      }
+      this.likeLoading = true
+      try {
+        await likeArticleApi(this.$route.params.id)
         if (this.article.isLike) {
-          this.article.likeNum--
+          this.article.likeNum = Math.max((this.article.likeNum || 0) - 1, 0)
         } else {
-          this.article.likeNum++
+          this.article.likeNum = (this.article.likeNum || 0) + 1
         }
         this.$message.success(this.article.isLike ? '取消点赞成功' : '点赞成功')
         this.article.isLike = !this.article.isLike
-        // 设置一个5秒的防抖
-        this.likeDebounce = true
-        setTimeout(() => {
-          this.likeDebounce = false
-        }, 5000)
-      })
+      } catch (error) {
+        this.$message.error(error.message || '点赞失败')
+      } finally {
+        this.likeLoading = false
+      }
     },
     /**
      * 分享
@@ -482,55 +474,6 @@ export default {
      */
     closeShareMenu() {
       this.showShareMenu = false
-    },
-    /**
-     * 分享到QQ
-     */
-    shareToQQ() {
-      const url = encodeURIComponent(this.currentUrl)
-      const title = encodeURIComponent(this.article.title)
-      const summary = encodeURIComponent(this.article.summary || '')
-      const pic = encodeURIComponent(this.article.avatar || '')
-      window.open(
-        `https://connect.qq.com/widget/shareqq/index.html?url=${url}&title=${title}&summary=${summary}&pics=${pic}`,
-        "renren-share", "width=490,height=700");
-      this.closeShareMenu()
-    },
-    /**
-     * 分享到QQ空间
-     */
-    shareToQzone() {
-      const url = encodeURIComponent(this.currentUrl)
-      const title = encodeURIComponent(this.article.title)
-      const summary = encodeURIComponent(this.article.summary || '')
-      const pic = encodeURIComponent(this.article.avatar || '')
-      window.open(
-        `https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${url}&title=${title}&summary=${summary}&pics=${pic}`,
-        "renren-share", "width=490,height=700"
-      )
-
-      this.closeShareMenu()
-    },
-    /**
-     * 分享到微博
-     */
-    shareToWeibo() {
-      const url = encodeURIComponent(this.currentUrl)
-      const title = encodeURIComponent(`${this.article.title} - 习习中博客`)
-      window.open(
-        `http://service.weibo.com/share/share.php?url=${url}&title=${title}`,
-        "renren-share", "width=490,height=700")
-      this.closeShareMenu()
-    },
-    /**
-     * 分享到微信
-     */
-    shareToWechat() {
-      // 由于微信分享需要使用微信SDK，这样简单处理
-      window.open(
-        `https://api.pwmqr.com/qrcode/create/?url=${window.location.href}`,
-        "renren-share", "width=490,height=700");
-      this.closeShareMenu()
     },
     /**
      * 复制链接
@@ -698,8 +641,7 @@ export default {
     },
     toggleDislike() {
       // 实现点踩功能
-      if (this.likeDebounce) {
-        this.$message.warning('请于 5 秒后再试')
+      if (this.likeLoading) {
         return
       }
       // TODO: 调用点踩 API
@@ -710,35 +652,46 @@ export default {
         this.article.dislikeNum++
       }
       this.article.isDislike = !this.article.isDislike
-      this.likeDebounce = true
-      setTimeout(() => {
-        this.likeDebounce = false
-      }, 5000)
     },
-    toggleFavorite() {
+    async toggleFavorite() {
       if (!this.$store.state.userInfo) {
         this.$message.warning('请先登录')
         return
       }
-      if (this.likeDebounce) {
-        this.$message.warning('请于 5 秒后再试')
+      if (this.collectLoading) {
         return
       }
-      // 实现收藏功能
-      collectArticleApi(this.$route.params.id).then(res => {
+      this.collectLoading = true
+      try {
+        await collectArticleApi(this.$route.params.id)
         if (this.article.isFavorite) {
-          this.article.favoriteNum--
+          this.article.favoriteNum = Math.max((this.article.favoriteNum || 0) - 1, 0)
         } else {
-          this.article.favoriteNum++
+          this.article.favoriteNum = (this.article.favoriteNum || 0) + 1
         }
         this.$message.success(this.article.isFavorite ? '取消收藏成功' : '收藏成功')
         this.article.isFavorite = !this.article.isFavorite
-        
-        this.likeDebounce = true
-        setTimeout(() => {
-          this.likeDebounce = false
-        }, 5000)
-      })
+        window.dispatchEvent(new CustomEvent('article-collect-updated', {
+          detail: {
+            articleId: String(this.$route.params.id),
+            isFavorite: this.article.isFavorite
+          }
+        }))
+      } catch (error) {
+        this.$message.error(error.message || '收藏失败')
+      } finally {
+        this.collectLoading = false
+      }
+    },
+    handleExternalCollectUpdate(event) {
+      const { articleId, isFavorite } = event?.detail || {}
+      if (!articleId || String(articleId) !== String(this.$route.params.id)) return
+      const nextStatus = Boolean(isFavorite)
+      if (Boolean(this.article.isFavorite) === nextStatus) return
+      this.article.favoriteNum = nextStatus
+        ? (this.article.favoriteNum || 0) + 1
+        : Math.max((this.article.favoriteNum || 0) - 1, 0)
+      this.article.isFavorite = nextStatus
     },
     toggleSidebar() {
       this.showSidebar = !this.showSidebar
@@ -906,6 +859,7 @@ export default {
   },
   mounted() {
     window.addEventListener('scroll', this.updateActiveHeading)
+    window.addEventListener('article-collect-updated', this.handleExternalCollectUpdate)
     this.$nextTick(() => {
       this.initImagePreview()
     })
@@ -913,6 +867,7 @@ export default {
   beforeDestroy() {
     window.removeEventListener('scroll', this.updateActiveHeading)
     window.removeEventListener('resize', this.updateActionBarPosition)
+    window.removeEventListener('article-collect-updated', this.handleExternalCollectUpdate)
     // 清理图片点击事件监听器
     const images = document.querySelectorAll('.article-content img')
     images.forEach(img => {

@@ -27,9 +27,4 @@ public class WechatProperties {
     @ApiModelProperty(value = "消息加解密密钥")
     private String aesKey;
 
-    @ApiModelProperty(value = "微信小程序appId")
-    private String appletAppId;
-
-    @ApiModelProperty(value = "微信小程序appSecret")
-    private String appletSecret;
 }

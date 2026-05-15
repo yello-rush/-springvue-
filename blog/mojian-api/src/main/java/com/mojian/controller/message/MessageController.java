@@ -1,6 +1,5 @@
 package com.mojian.controller.message;
 
-import com.mojian.annotation.AccessLimit;
 import com.mojian.service.MessageService;
 import com.mojian.common.Result;
 import com.mojian.entity.SysMessage;
@@ -20,7 +19,6 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    @AccessLimit
     @GetMapping("/list")
     @ApiOperation(value = "留言列表")
     public Result<List<SysMessage>> getMessageList() {

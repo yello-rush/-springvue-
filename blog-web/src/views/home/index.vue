@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <HotArticleList :visible="hotRankVisible" :on-toggle="handleHotRankToggle" />
     <div class="home-container">
       
       <!-- Layout: Left Main (Carousel + Articles), Right Sidebar -->
@@ -43,9 +44,6 @@
         <div class="right-column">
           <AuthorCard />
           <Sidebar />
-          <div class="sticky-sidebar">
-            <HotArticleList dock />
-          </div>
         </div>
 
       </div>
@@ -80,7 +78,7 @@ export default {
       total: 0,
       params: {
         pageNum: 1,
-        pageSize: 10, 
+        pageSize: 6,
         categoryId: null
       },
       articleList: [],
@@ -89,7 +87,8 @@ export default {
       categories: [],
       carouselItems: [],
       carouselTimer: null,
-      activeCarouselIndex: 0
+      activeCarouselIndex: 0,
+      hotRankVisible: false
     };
   },
   methods: {
@@ -105,6 +104,9 @@ export default {
       this.params.categoryId = val === "all" ? null : val;
       this.params.pageNum = 1;
       this.getArticleList();
+    },
+    handleHotRankToggle(nextVisible) {
+      this.hotRankVisible = typeof nextVisible === "boolean" ? nextVisible : !this.hotRankVisible;
     },
     goToPost(id) {
       this.$router.push(`/post/${id}`);

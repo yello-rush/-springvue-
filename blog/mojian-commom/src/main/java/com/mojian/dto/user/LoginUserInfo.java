@@ -23,8 +23,11 @@ public class LoginUserInfo implements Serializable {
     @ApiModelProperty(value = "头像")
     private String avatar;
 
-    @ApiModelProperty(value = "性别")
-    private Integer sex;
+    @ApiModelProperty(value = "邮箱")
+    private String email;
+
+    @ApiModelProperty(value = "安全码")
+    private String securityCode;
 
     @ApiModelProperty(value = "个性签名")
     private String signature;

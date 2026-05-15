@@ -148,7 +148,6 @@
                 <span v-if="msg.userId === 2" class="assistant-tag">A I</span>
                 <span class="message-time">{{ msg.time }}</span>
                 <span class="location">{{ splitIpAddress(msg.location) }}</span>
-                <span class="gender" v-if="msg.sex"><i :class="msg.sex === 1 ? 'fas fa-mars' : 'fas fa-venus'"></i></span>
               </div>
             </div>
             <div v-if="msg.isRecalled" class="message-recalled">
@@ -345,7 +344,6 @@
       <p class="signature">
         签名：{{ selectedFriend.signature || "这个人很懒，什么都没写。" }}
       </p>
-      <p class="gender">性别：{{ selectedFriend.gender || "未知" }}</p>
       <el-button
         type="primary"
         size="small"
@@ -662,7 +660,6 @@ export default {
         userId: message.userId,
         name: message.name,
         avatar: message.avatar,
-        sex: message.sex,
         location: message.location,
         fileSize: message.fileSize,
         fileName: message.fileName,
@@ -765,7 +762,6 @@ export default {
             name: this.$store.state.userInfo.nickname,
             userId: this.$store.state.userInfo.id,
             avatar: this.$store.state.userInfo.avatar,
-            sex: this.$store.state.userInfo.sex,
             replyId: this.selectedReplyMessage?.id || null,
             replyContent: this.selectedReplyMessage?.content || null,
             replyUserId: this.selectedReplyMessage?.userId || null,
@@ -812,7 +808,6 @@ export default {
         name: this.$store.state.userInfo.nickname,
         userId: this.$store.state.userInfo.id,
         avatar: this.$store.state.userInfo.avatar,
-        sex: this.$store.state.userInfo.sex,
       };
 
       try {
@@ -1429,7 +1424,6 @@ export default {
         name: this.$store.state.userInfo.nickname,
         userId: this.$store.state.userInfo.id,
         avatar: this.$store.state.userInfo.avatar,
-        sex: this.$store.state.userInfo.sex,
       };
 
       try {
@@ -1560,7 +1554,6 @@ export default {
         name: this.$store.state.userInfo.nickname,
         userId: this.$store.state.userInfo.id,
         avatar: this.$store.state.userInfo.avatar,
-        sex: this.$store.state.userInfo.sex,
       };
 
       try {

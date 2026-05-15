@@ -16,3 +16,12 @@ export function deleteMessageApi(ids: any) {
     method: 'delete'
   })
 }
+
+// 群发系统消息
+export function sendSystemMessageApi(data: any) {
+  return request({
+    url: '/sys/message/system/send',
+    method: 'post',
+    data
+  })
+}

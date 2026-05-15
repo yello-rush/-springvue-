@@ -9,7 +9,6 @@
           :is-collapse="isCollapse"
           @toggle-collapse="toggleCollapse"
           @lock="handleLock"
-          @theme-click="drawerVisible = true"
         />
       </el-header>
       <!-- 标签页 -->
@@ -35,22 +34,10 @@
 
       </el-main>
 
-      <!-- 主题切换按钮 -->
-      <div class="theme-icon-container" @click="handleThemeClick">
-        <el-icon class="theme-icon" >
-          <Setting />
-        </el-icon>
-      </div>
       <!-- 添加页脚 -->
       <Footer v-if="settingsStore.showFooter" />
     </el-container>
   </el-container>
-
-  <!-- 设置抽屉 -->
-  <setting-drawer
-    v-model:visible="drawerVisible"
-    v-model:isCollapse="isCollapse"
-  />
 
   <!-- 添加锁屏组件 -->
   <lock-screen ref="lockScreenRef" />
@@ -61,7 +48,6 @@
 
 <script setup lang="ts">
 import TagsView from '@/components/TagsView/index.vue'
-import SettingDrawer from '@/components/SettingDrawer/index.vue'
 import Navbar from '@/layouts/components/Navbar/index.vue'
 import Sidebar from './components/Sidebar/index.vue'
 import LockScreen from '@/components/LockScreen/index.vue'
@@ -74,7 +60,6 @@ import { useTagsViewStore } from '@/store/modules/tagsView'
 const settingsStore = useSettingsStore()
 const tagsViewStore = useTagsViewStore()
 const isCollapse = ref<boolean>(false)
-const drawerVisible = ref(false)
 const lockScreenRef = ref()
 
 const toggleCollapse = () => {
@@ -83,11 +68,6 @@ const toggleCollapse = () => {
 
 // 缓存的视图
 const cachedViews = computed(() => tagsViewStore.cachedViews)
-
-// 修改 handleThemeClick 函数
-const handleThemeClick = () => {
-  drawerVisible.value = true
-}
 
 const handleLock = () => {
   lockScreenRef.value?.lock()

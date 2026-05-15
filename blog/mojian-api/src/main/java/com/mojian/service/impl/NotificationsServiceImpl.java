@@ -36,9 +36,13 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public void doRead(Long id) {
+        Long currentUserId = StpUtil.getLoginIdAsLong();
         SysNotifications notifications = baseMapper.selectById(id);
         if (notifications == null) {
             throw new ServiceException("消息通知不存在");
+        }
+        if (!currentUserId.equals(notifications.getUserId())) {
+            throw new ServiceException("无权限操作该消息");
         }
         notifications.setIsRead(1);
         baseMapper.updateById(notifications);
@@ -52,6 +56,14 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public void delete(Long id) {
+        Long currentUserId = StpUtil.getLoginIdAsLong();
+        SysNotifications notifications = baseMapper.selectById(id);
+        if (notifications == null) {
+            throw new ServiceException("消息通知不存在");
+        }
+        if (!currentUserId.equals(notifications.getUserId())) {
+            throw new ServiceException("无权限删除该消息");
+        }
         baseMapper.deleteById(id);
     }
 

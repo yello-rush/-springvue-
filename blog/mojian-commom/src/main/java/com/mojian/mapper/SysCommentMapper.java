@@ -26,6 +26,4 @@ public interface SysCommentMapper extends BaseMapper<SysComment> {
 
     IPage<CommentListVo> selectMyComment(@Param("page") Page<Object> page,@Param("userId")  long userId);
 
-    IPage<CommentListVo> getMyReply(@Param("page") Page<Object> page,@Param("userId")  long userId);
-
 }

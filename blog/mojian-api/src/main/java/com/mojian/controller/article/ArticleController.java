@@ -2,7 +2,6 @@ package com.mojian.controller.article;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.mojian.annotation.AccessLimit;
 import com.mojian.entity.SysCategory;
 import com.mojian.service.ArticleService;
 import com.mojian.vo.article.ArchiveListVo;
@@ -13,18 +12,23 @@ import com.mojian.common.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
+import com.mojian.utils.IpUtil;
+import cn.dev33.satoken.stp.StpUtil;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/article")
 @RequiredArgsConstructor
 @Api(tags = "门户-文章管理")
+@Slf4j
 public class ArticleController {
 
     private final ArticleService articleService;
@@ -92,7 +96,6 @@ public class ArticleController {
 
     @SaCheckLogin
     @GetMapping("/like/{id}")
-    @AccessLimit(time = 5, count = 1)
     @ApiOperation(value = "点赞文章")
     public Result<Boolean> like(@PathVariable Long id) {
         return Result.success(articleService.like(id));
@@ -100,9 +103,15 @@ public class ArticleController {
 
     @SaCheckLogin
     @PostMapping("/collect/{id}")
-    @AccessLimit(time = 5, count = 1)
     @ApiOperation(value = "收藏文章")
     public Result<Boolean> collect(@PathVariable Long id) {
-        return Result.success(articleService.collect(id));
+        Boolean collected = articleService.collect(id);
+        log.info("collect-api-log userId={}, articleId={}, action={}, time={}, code=200, ip={}",
+                StpUtil.getLoginIdDefaultNull(),
+                id,
+                Boolean.TRUE.equals(collected) ? "collect" : "uncollect",
+                LocalDateTime.now(),
+                IpUtil.getIp());
+        return Result.success(collected);
     }
 }

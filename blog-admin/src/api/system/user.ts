@@ -111,21 +111,3 @@ export function verifyPassword(password: string) {
   })
 }
 
-// 获取在线用户
-export function getOnlineUserApi(params: any) {
-  return request<any>({
-    url: '/monitor/online/list',
-    method: 'get',
-    params
-  })
-}
-
-// 强制下线
-export function forceLogoutApi(token: string) {
-  return request<any>({
-    url: `/monitor/online/forceLogout/${token}`,
-    method: 'get'
-  })
-}
-
-

@@ -7,6 +7,7 @@ import com.mojian.entity.SysArticle;
 import com.mojian.entity.SysComment;
 import com.mojian.entity.SysUser;
 import com.mojian.mapper.*;
+import com.mojian.exception.ServiceException;
 import com.mojian.service.UserService;
 import com.mojian.utils.PageUtil;
 import com.mojian.vo.article.ArticleListVo;
@@ -55,12 +56,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public IPage<CommentListVo> getMyReply() {
-        return commentMapper.getMyReply(PageUtil.getPage(),StpUtil.getLoginIdAsLong());
-    }
-
-    @Override
     public void updateProfile(SysUser user) {
+        user.setId(StpUtil.getLoginIdAsInt());
+        if (user.getSecurityCode() != null && !user.getSecurityCode().matches("^\\d{4}$")) {
+            throw new ServiceException("安全码必须为4位数字");
+        }
         sysUserMapper.updateById(user);
     }
 

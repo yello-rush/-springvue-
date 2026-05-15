@@ -37,12 +37,6 @@ public interface UserService {
     IPage<ArticleListVo> selectMyLike();
 
     /**
-     * 查询我的回复
-     * @return
-     */
-    IPage<CommentListVo> getMyReply();
-
-    /**
      * 修改我的资料
      * @param user
      */

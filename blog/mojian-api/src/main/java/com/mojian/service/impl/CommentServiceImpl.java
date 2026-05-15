@@ -10,7 +10,6 @@ import com.mojian.utils.SensitiveUtil;
 import com.mojian.vo.comment.CommentListVo;
 import com.mojian.entity.SysComment;
 import com.mojian.mapper.SysCommentMapper;
-import com.mojian.utils.IpUtil;
 import com.mojian.utils.PageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,10 +37,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void add(SysComment sysComment) {
-
-        String ip = IpUtil.getIp();
-        sysComment.setIp(ip);
-        sysComment.setIpSource(IpUtil.getProvince(ip));
         sysComment.setUserId(StpUtil.getLoginIdAsLong());
         sysComment.setContent(SensitiveUtil.filter(sysComment.getContent()));
 

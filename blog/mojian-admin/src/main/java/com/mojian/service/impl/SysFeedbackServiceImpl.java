@@ -4,14 +4,19 @@ package com.mojian.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import com.mojian.common.Constants;
 import com.mojian.dto.feedback.SysFeedbackQueryDto;
+import com.mojian.enums.FeedbackTypeEnum;
+import com.mojian.exception.ServiceException;
 import com.mojian.vo.feedback.SysFeedbackVo;
+import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.JdbcTemplate;
 import com.mojian.mapper.SysFeedbackMapper;
 import com.mojian.entity.SysFeedback;
 import com.mojian.service.SysFeedbackService;
 import com.mojian.utils.PageUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -26,11 +31,12 @@ public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFe
      */
     @Override
     public IPage<SysFeedbackVo> selectPage(SysFeedbackQueryDto feedbackQueryDto) {
+        ensureFeedbackTypeColumn();
         //如果是门户端的则只能看自己的反馈
         if (!Constants.ADMIN.equals(feedbackQueryDto.getSource())) {
-            feedbackQueryDto.setUserId(StpUtil.getLoginIdAsLong());
+            feedbackQueryDto.setUserId(getCurrentUserId());
         }
-        return baseMapper.page(PageUtil.getPage(), feedbackQueryDto);
+        return baseMapper.page(buildPage(), feedbackQueryDto);
     }
 
     /**
@@ -38,7 +44,10 @@ public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFe
      */
     @Override
     public boolean insert(SysFeedback sysFeedback) {
-        sysFeedback.setUserId(StpUtil.getLoginIdAsLong());
+        ensureFeedbackTypeColumn();
+        String feedbackType = normalizeFeedbackType(sysFeedback.getFeedbackType(), true);
+        sysFeedback.setFeedbackType(feedbackType);
+        sysFeedback.setUserId(getCurrentUserId());
         return save(sysFeedback);
     }
 
@@ -47,6 +56,76 @@ public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFe
      */
     @Override
     public boolean update(SysFeedback sysFeedback) {
+        ensureFeedbackTypeColumn();
+        String feedbackType = normalizeFeedbackType(sysFeedback.getFeedbackType(), false);
+        if (feedbackType != null) {
+            sysFeedback.setFeedbackType(feedbackType);
+        }
         return updateById(sysFeedback);
+    }
+
+    protected Long getCurrentUserId() {
+        return StpUtil.getLoginIdAsLong();
+    }
+
+    private String normalizeFeedbackType(String feedbackType, boolean required) {
+        if (!StringUtils.hasText(feedbackType)) {
+            if (required) {
+                throw new ServiceException("反馈类型不能为空");
+            }
+            return null;
+        }
+        String normalized = feedbackType.trim();
+        if (!FeedbackTypeEnum.contains(normalized)) {
+            throw new ServiceException("反馈类型不合法");
+        }
+        return normalized;
+    }
+
+    protected Page<Object> buildPage() {
+        return PageUtil.getPage();
+    }
+
+    private final JdbcTemplate jdbcTemplate;
+
+    private void ensureFeedbackTypeColumn() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM information_schema.columns " +
+                        "WHERE table_schema = DATABASE() AND table_name = 'sys_feedback' AND column_name = 'feedback_type'",
+                Integer.class
+        );
+        boolean hasFeedbackType = count != null && count > 0;
+        if (!hasFeedbackType) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE `sys_feedback` " +
+                            "ADD COLUMN `feedback_type` VARCHAR(32) NOT NULL DEFAULT 'function_suggestion' COMMENT '反馈类型'"
+            );
+            jdbcTemplate.execute(
+                    "UPDATE `sys_feedback` " +
+                            "SET `feedback_type` = 'other' " +
+                            "WHERE `feedback_type` IS NULL OR `feedback_type` = ''"
+            );
+        }
+        ensureLegacyTypeColumnCompatible();
+    }
+
+    private void ensureLegacyTypeColumnCompatible() {
+        Integer legacyTypeCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM information_schema.columns " +
+                        "WHERE table_schema = DATABASE() AND table_name = 'sys_feedback' AND column_name = 'type'",
+                Integer.class
+        );
+        if (legacyTypeCount == null || legacyTypeCount <= 0) {
+            return;
+        }
+        jdbcTemplate.execute(
+                "UPDATE `sys_feedback` SET `type` = '2' " +
+                        "WHERE `type` IS NULL OR `type` = ''"
+        );
+        try {
+            jdbcTemplate.execute("ALTER TABLE `sys_feedback` ALTER COLUMN `type` SET DEFAULT '2'");
+        } catch (Exception ignored) {
+            // 兼容不同 MySQL 方言，不影响主流程
+        }
     }
 }

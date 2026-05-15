@@ -92,12 +92,6 @@
                     placeholder="请输入邮箱地址"
                   />
                 </el-form-item>
-                <el-form-item label="性别">
-                  <el-radio-group v-model="userForm.sex">
-                    <el-radio :value="1">男</el-radio>
-                    <el-radio :value="2">女</el-radio>
-                  </el-radio-group>
-                </el-form-item>
                 <el-form-item>
                   <el-button 
                     v-permission="['sys:user:update']"
@@ -183,8 +177,7 @@ const userInfo = ref<any>({
 const userForm = reactive({
   nickname: '',
   mobile: '',
-  email: '',
-  sex: 1
+  email: ''
 })
 
 const pwdForm = reactive({
@@ -240,8 +233,7 @@ const getUser = async () => {
       id: data.sysUser.id,
       nickname: data.sysUser.nickname,
       mobile: data.sysUser.mobile,
-      email: data.sysUser.email,
-      sex: data.sysUser.sex
+      email: data.sysUser.email
     })
   } catch (error) {
     console.error('获取用户信息失败:', error)

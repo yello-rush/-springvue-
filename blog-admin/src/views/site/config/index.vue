@@ -83,25 +83,6 @@
               </el-icon>
               <span class="tab-label">社交信息</span>
             </template>
-            <el-form-item label="Github地址" prop="github">
-              <el-input v-model="form.github" placeholder="请输入Github地址">
-                <template #prefix>
-                  <el-icon>
-                    <ElementPlus />
-                  </el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-
-            <el-form-item label="Gitee地址" prop="gitee">
-              <el-input v-model="form.gitee" placeholder="请输入Gitee地址">
-                <template #prefix>
-                  <el-icon>
-                    <Platform />
-                  </el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
 
             <el-form-item label="QQ号" prop="qqNumber">
               <el-input v-model="form.qqNumber" placeholder="请输入QQ号">
@@ -156,44 +137,6 @@
               <el-col :span="12">
                 <el-form-item label="游客头像" prop="touristAvatar">
                   <upload-image v-model="form.touristAvatar" :limit="1" />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="显示的社交信息" prop="showList">
-                  <el-select v-model="showList" multiple placeholder="请选择要显示的社交信息">
-                    <el-option label="邮箱" value="email" />
-                    <el-option label="QQ" value="qq" />
-                    <el-option label="QQ群" value="qqGroup" />
-                    <el-option label="Github" value="github" />
-                    <el-option label="Gitee" value="gitee" />
-                    <el-option label="微信" value="wechat" />
-                  </el-select>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="登录方式" prop="loginTypeList">
-                  <el-select v-model="loginTypeList" multiple placeholder="请选择登录方式">
-                    <el-option v-for="item in loginTypes" :label="item.label" :value="item.value" :key="item.value" />
-                  </el-select>
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <el-form-item label="开启评论">
-                  <el-switch v-model="form.openComment" :active-value="1" :inactive-value="0" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="开启赞赏">
-                  <el-switch v-model="form.openAdmiration" :active-value="1" :inactive-value="0" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="开启灯笼">
-                  <el-switch v-model="form.openLantern" :active-value="1" :inactive-value="0" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -260,24 +203,10 @@ const form = ref({
   qqGroup: '',
   wechat: '',
   email: '',
-  showList: '',
-  loginTypeList: '',
-  openComment: 1,
-  openAdmiration: 1,
   touristAvatar: '',
   bulletin: '',
   aboutMe: '',
-  openLantern: 0
 })
-const showList = ref([])
-const loginTypeList = ref([])
-const loginTypes = ref([
-  { label: 'QQ', value: '1' },
-  { label: '微博', value: '2' },
-  { label: 'Gitee', value: '3' },
-  { label: 'Github', value: '4' },
-  { label: '邮箱', value: '5' }
-])
 
 const files = ref();
 
@@ -293,8 +222,6 @@ const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate((valid) => {
     if (valid) {
-      form.value.showList = JSON.stringify(showList.value)
-      form.value.loginTypeList = JSON.stringify(loginTypeList.value)
       updateWebConfigApi(form.value).then(() => {
         ElMessage.success('保存成功')
       })
@@ -324,12 +251,6 @@ function contentUpload(file: any, insertFn: any) {
 onMounted(() => {
   getWebConfigApi().then((res) => {
     form.value = res.data
-    if (form.value.showList) {
-      showList.value = JSON.parse(form.value.showList)
-    }
-    if (form.value.loginTypeList) {
-      loginTypeList.value = JSON.parse(form.value.loginTypeList)
-    }
   })
 
   getDictDataByDictTypes();

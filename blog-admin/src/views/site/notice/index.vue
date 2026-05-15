@@ -13,12 +13,6 @@
                         <el-option label="是" :value="1" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="显示位置" prop="position">
-                    <el-select v-model="queryParams.position" placeholder="请选择显示位置" style="width: 240px">
-                        <el-option v-for="item in positionOptions" :key="item.value" :label="item.label"
-                            :value="item.value" />
-                    </el-select>
-                </el-form-item>
                 <el-form-item>
                     <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
                     <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -51,15 +45,6 @@
                             :inactive-value="0" />
                     </template>
                 </el-table-column>
-                <el-table-column label="显示位置" align="center" prop="position">
-                    <template #default="scope">
-                        <span v-for="item in positionOptions">
-                            <el-tag :type="item.style" v-if="scope.row.position === item.value">
-                                {{ item.label }}
-                            </el-tag>
-                        </span>
-                    </template>
-                </el-table-column>
                 <el-table-column label="创建时间" align="center" prop="createTime" width="180"/>
                 <el-table-column label="操作" align="center" width="150">
                     <template #default="scope">
@@ -90,22 +75,10 @@
                 <el-form-item label="跳转链接" prop="url">
                     <el-input v-model="form.url" placeholder="请输入跳转链接" />
                 </el-form-item>
-                <el-form-item label="排序" prop="sort">
-                    <el-input-number v-model="form.sort" :min="0" />
-                </el-form-item>
-                <el-form-item label="显示时长" prop="duration">
-                    <el-input-number v-model="form.duration" :min="1000" :step="1000" />
-                    <span style="margin-left: 10px; color: #999;">毫秒 (1000ms = 1s)</span>
-                </el-form-item>
                 <el-form-item label="是否展示" prop="isShow">
                     <el-switch v-model="form.isShow"
                         style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" :active-value="1"
                         :inactive-value="0" />
-                </el-form-item>
-                <el-form-item label="显示位置" prop="position">
-                    <el-radio-group v-model="form.position">
-                        <el-radio v-for="dict in positionOptions" :value="dict.value">{{ dict.label }}</el-radio>
-                    </el-radio-group>
                 </el-form-item>
             </el-form>
                 <template #footer>
@@ -170,23 +143,11 @@ const rules = reactive({
     ],
     isShow: [
         { required: true, message: "是否展示不能为空", trigger: "blur" }
-    ],
-    position: [
-        { required: true, message: "显示位置不能为空", trigger: "blur" }
-    ],
+    ]
 })
 
 const queryFormRef = ref()
 const formRef = ref()
-
-// 字典数据
-const positionOptions = ref([
-  { label: '首页', value: '1' },
-  { label: '归档', value: '2' },
-  { label: '分类', value: '3' },
-  { label: '标签', value: '4' },
-  { label: '文章详情', value: '5' }
-])
 
 /** 查询列表 */
 const getList = () => {
@@ -208,12 +169,10 @@ const cancel = () => {
 const reset = () => {
     form.id = undefined
     form.isShow = 1
-    form.position = 'right'
+    form.position = 'top'
     form.content = ''
     form.title = ''
     form.url = ''
-    form.sort = 0
-    form.duration = 5000
 }
 
 /** 搜索按钮操作 */
@@ -314,7 +273,7 @@ const handleCurrentChange = (val: any) => {
 }
 // 切换状态
 const handleChange = (row: any) => {
-    updateSysNoticeApi({ id: row.id, isShow: row.isShow,position:row.position }).then(response => {
+    updateSysNoticeApi({ id: row.id, isShow: row.isShow, position: 'top' }).then(response => {
         ElMessage.success("修改成功")
     }).catch(error => {
         row.isShow = !row.isShow

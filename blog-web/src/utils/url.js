@@ -11,3 +11,23 @@ export function normalizeImageUrl(input) {
     return url
   }
 }
+
+export function getOptimizedImageUrl(input, options = {}) {
+  const url = normalizeImageUrl(input)
+  if (!url) return url
+  const width = Number(options.width || 720)
+  const quality = Number(options.quality || 75)
+  if (!/^https?:\/\//i.test(url)) return url
+  if (/(x-oss-process|imageMogr2|imageView2)=/i.test(url)) return url
+
+  const joiner = url.includes('?') ? '&' : '?'
+  // Aliyun OSS
+  if (/aliyuncs\.com|oss-/i.test(url)) {
+    return `${url}${joiner}x-oss-process=image/format,webp/resize,w_${width}/quality,q_${quality}`
+  }
+  // Qiniu
+  if (/qiniucdn|clouddn|qiniu/i.test(url)) {
+    return `${url}${joiner}imageView2/2/w/${width}/q/${quality}/format/webp`
+  }
+  return url
+}

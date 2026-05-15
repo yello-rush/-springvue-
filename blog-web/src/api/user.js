@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getUserInfoApi() {
     return request({
-        url: '/sys/user/profile',
+    url: '/auth/info',
         method: 'get'
     })
 }
@@ -17,7 +17,7 @@ export function getUserInfoApi() {
  */
 export function updateProfileApi(data) {
     return request({
-        url: '/protal/user/updateProfile',
+    url: '/protal/user/updateProfile',
         method: 'put',
         data
     })
@@ -56,22 +56,11 @@ export function delMyCommentApi(id) {
 }
 
 /**
- * 获取我的回复
- */
-export function getMyReplyApi(params) {
-    return request({
-        url: '/protal/user/myReply',
-        method: 'get',
-        params
-    })
-}
-
-/**
  * 获取浏览历史
  */
 export function getMyHistoryApi(params) {
     return request({
-        url: '/api/user/history',
+        url: '/protal/user/history',
         method: 'get',
         params
     })
@@ -82,7 +71,7 @@ export function getMyHistoryApi(params) {
  */
 export function getMyFavoritesApi(params) {
     return request({
-        url: '/api/user/favorites',
+        url: '/protal/user/favorites',
         method: 'get',
         params
     })
@@ -104,7 +93,7 @@ export function getMyLikeApi(params) {
  */
 export function getMyFeedbackApi(params) {
     return request({
-        url: '/sys/feedback/list',
+        url: '/protal/user/feedback/list',
         method: 'get',
         params
     })
@@ -115,7 +104,7 @@ export function getMyFeedbackApi(params) {
  */
 export function addFeedbackApi(data) {
     return request({
-        url: '/sys/feedback/add',
+        url: '/protal/user/feedback/add',
         method: 'post',
         data
     })
@@ -151,6 +140,16 @@ export function getSignInStatsApi() {
     })
 }
 
+/**
+ * 获取签到日期列表
+ */
+export function getSignInDaysApi() {
+  return request({
+    url: '/sign/getSignDays',
+    method: 'get'
+  })
+}
+
 export function sendEmailCodeApi(email) {
     return request({
         url: '/auth/api/sendEmailCode',
@@ -182,7 +181,3 @@ export function forgotApi(data) {
         data
     })
 }
-
-
-
-

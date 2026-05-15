@@ -27,20 +27,19 @@ public class SysFeedbackController {
 
 
     @GetMapping("/list")
-    @ApiOperation(value = "获取反馈列表")
+    @ApiOperation(value = "获取反馈列表", notes = "支持按feedbackType筛选，取值：function_suggestion、bug_report、performance_issue、ui_optimization、other")
     public Result<IPage<SysFeedbackVo>> list(SysFeedbackQueryDto feedbackQueryDto) {
         return Result.success(sysFeedbackService.selectPage(feedbackQueryDto));
     }
 
     @PostMapping("/add")
-    @ApiOperation(value = "添加反馈")
-    @SaCheckPermission("sys:feedback:add")
+    @ApiOperation(value = "添加反馈", notes = "feedbackType必填，取值：function_suggestion、bug_report、performance_issue、ui_optimization、other")
     public Result<Object> add(@RequestBody SysFeedback sysFeedback) {
         return Result.success(sysFeedbackService.insert(sysFeedback));
     }
 
     @PutMapping("/update")
-    @ApiOperation(value = "修改反馈")
+    @ApiOperation(value = "修改反馈", notes = "feedbackType可选，若传入需为：function_suggestion、bug_report、performance_issue、ui_optimization、other")
     @SaCheckPermission("sys:feedback:update")
     public Result<Object> update(@RequestBody SysFeedback sysFeedback) {
         return Result.success(sysFeedbackService.update(sysFeedback));

@@ -11,11 +11,6 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="登录方式" prop="loginType">
-          <el-select v-model="queryParams.loginType" placeholder="请选择登录方式" clearable>
-            <el-option v-for="item in loginTypes" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
             <el-option label="启用" value="1" />
@@ -65,15 +60,6 @@
           </template>
         </el-table-column>
         <el-table-column label="昵称" align="center" prop="nickname" show-overflow-tooltip />
-        <el-table-column label="登录方式" align="center" prop="ipLocation" >
-          <template #default="{ row }">
-            <span v-for="item in loginTypes">
-                <el-tag :type="item.style" v-if="row.loginType === item.value">
-                  {{ item.label}}
-              </el-tag>
-            </span>
-          </template>
-        </el-table-column>
         <el-table-column label="登录IP" align="center" prop="ip" show-overflow-tooltip />
         <el-table-column label="登录地址" align="center" prop="ipLocation" show-overflow-tooltip />
         <el-table-column label="状态" align="center" width="80">
@@ -189,15 +175,6 @@
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="性别" prop="sex">
-              <el-radio-group v-model="userForm.sex">
-                <el-radio :value="1">男</el-radio>
-                <el-radio :value="2">女</el-radio>
-                <el-radio :value="0">保密</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="密码" prop="password" v-if="dialog.type === 'add'">
               <el-input 
                 v-model="userForm.password" 
@@ -309,7 +286,6 @@ const queryParams = reactive({
   pageSize: 10,
   nickname: '',
   status: '',
-  loginType: ''
 })
 
 const loading = ref(false)
@@ -340,7 +316,6 @@ const userForm = reactive({
   password: null,
   mobile: '',
   email: '',
-  sex: 0,
   status: 1,
   ip: undefined,
   ipLocation: undefined,
@@ -370,9 +345,6 @@ const rules = reactive<FormRules>({
   ],
   roleIds: [
     { required: true, message: '请选择角色', trigger: 'change' }
-  ],
-  sex: [
-    { required: true, message: '请选择性别', trigger: 'change' }
   ]
 })
 
@@ -411,8 +383,6 @@ const resetPwdRules = reactive<FormRules>({
 })
 
 const resetPwdFormRef = ref<FormInstance>()
-
-const loginTypes = ref<any>([])
 
 // 获取用户列表
 const getList = async () => {
@@ -473,7 +443,6 @@ const handleAdd = () => {
   userForm.password = null
   userForm.mobile = ''
   userForm.email = ''
-  userForm.sex = 0
   userForm.status = 1
   userForm.ip = undefined
   userForm.ipLocation = undefined

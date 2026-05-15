@@ -34,9 +34,6 @@ public class SysArticleDetailVo {
     @ApiModelProperty(value = "阅读方式 0无需验证 1：评论阅读 2：点赞阅读 3：扫码阅读")
     private Integer readType;
 
-    @ApiModelProperty(value = "是否置顶 0否 1是")
-    private Integer isStick;
-
     @ApiModelProperty(value = "状态 review：审核 publish：上架 offline：下架 draft：草稿")
     private String status;
 

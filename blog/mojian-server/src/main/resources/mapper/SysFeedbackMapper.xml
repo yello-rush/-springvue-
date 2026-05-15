@@ -14,8 +14,8 @@
             <if test="sysFeedback.userId != null">
                 and sf.user_id = #{sysFeedback.userId}
             </if>
-            <if test="sysFeedback.type != null and sysFeedback.type != ''">
-                and sf.type = #{sysFeedback.type}
+            <if test="sysFeedback.feedbackType != null and sysFeedback.feedbackType != ''">
+                and sf.feedback_type = #{sysFeedback.feedbackType}
             </if>
             <if test="sysFeedback.status != null">
                 and sf.status = #{sysFeedback.status}

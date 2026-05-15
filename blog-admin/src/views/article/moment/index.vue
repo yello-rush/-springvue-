@@ -16,7 +16,11 @@
       <!-- 数据表格 -->
       <el-table v-loading="loading" :data="momentList" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="内容" align="center" prop="content" show-overflow-tooltip />
+        <el-table-column label="内容" align="center" show-overflow-tooltip>
+          <template #default="scope">
+            <span>{{ scope.row.content.replace(/<[^>]+>/g, '') }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="图片" align="center" prop="content">
           <template #default="scope">
             <el-image v-for="item in parseImage(scope.row.images)" :src="item" style="width: 50px; height: 50px" />

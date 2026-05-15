@@ -15,7 +15,6 @@
         <module>mojian-api</module>
         <module>mojian-server</module>
         <module>mojian-file</module>
-        <module>mojian-quartz</module>
         <module>mojian-auth</module>
     </modules>
 
@@ -31,6 +30,7 @@
         <sa-token.version>1.39.0</sa-token.version>
         <package.version>1.0-SNAPSHOT</package.version>
         <lombok.version>1.18.34</lombok.version>
+        <skipTests>true</skipTests>
     </properties>
 
 
@@ -92,7 +92,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.1</version>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
         </plugins>

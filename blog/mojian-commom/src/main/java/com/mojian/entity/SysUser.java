@@ -61,14 +61,11 @@ public class SysUser implements Serializable {
     @ApiModelProperty(value = "邮箱")
     private String email;
 
+    @ApiModelProperty(value = "安全码")
+    private String securityCode;
+
     @ApiModelProperty(value = "个性签名")
     private String signature;
-
-    @ApiModelProperty(value = "性别")
-    private Integer sex;
-
-    @ApiModelProperty(value = "登录方式")
-    private String loginType;
 
     @ApiModelProperty(value = "创建时间")
     @TableField(fill = FieldFill.INSERT)

@@ -1,211 +1,294 @@
 <template>
   <div class="notifications-page">
-    <!-- 左侧消息分类 -->
-    <div class="notifications-sidebar">
-      <div class="sidebar-header">
-        <h2>消息分类</h2>
-      </div>
-      <div class="category-list">
-        <div 
-          v-for="category in categories" 
-          :key="category.type"
-          class="category-item"
-          :class="{ active: currentCategory === category.type }"
-          @click="switchCategory(category.type)"
-        >
-          <i :class="category.icon"></i>
-          <span>{{ category.name }}</span>
-          <el-badge 
-            v-if="category.unread" 
-            :value="category.unread" 
-            class="category-badge"
-          />
-        </div>
+    <div class="notifications-header">
+      <h1>消息中心</h1>
+      <div class="header-actions">
+        <el-select v-model="currentCategory" size="small" style="width: 140px" @change="switchCategory">
+          <el-option v-for="category in categories" :key="category.type" :label="category.name" :value="category.type" />
+        </el-select>
+        <el-button type="primary" plain size="small" :loading="markAllLoading" @click="markAllAsRead" :disabled="!hasUnread">
+          <i class="fas fa-check-double"></i>
+          全部标记已读
+        </el-button>
       </div>
     </div>
 
-    <!-- 右侧消息列表 -->
-    <div class="notifications-main">
-      <div class="notifications-header">
-        <h1>{{ currentCategoryName }}</h1>
-        <div class="header-actions">
-          <el-button type="text" @click="markAllAsRead" v-if="hasUnread">
-            <i class="fas fa-check-double"></i> 全部已读
-          </el-button>
+    <div class="notifications-columns" v-loading="loading">
+      <section class="column-card">
+        <div class="column-header">
+          <span>未读消息</span>
+          <el-tag type="danger" size="small">{{ unreadNotifications.length }}</el-tag>
         </div>
-      </div>
-
-      <div class="notifications-content" v-loading="loading">
-        <template v-if="notifications.length">
-          <div 
-            v-for="notification in filteredNotifications" 
-            :key="notification.id" 
-            class="notification-item"
-            :class="{ unread: !notification.isRead }"
-            @click="handleNotificationClick(notification)"
-          >
+        <div v-if="unreadNotifications.length" class="column-list">
+          <div v-for="notification in unreadNotifications" :key="notification.id" class="notification-item unread">
             <div class="notification-icon">
               <i :class="getNotificationIcon(notification.type)"></i>
             </div>
-            <div class="notification-body">
-              <div class="notification-title">{{ notification.title }}</div>
-              <div class="notification-message">
-                <span v-if="notification.type === 'comment'">
-                  <span v-if="notification.fromUserId">
-                    {{ notification.fromNickname }} 回复了你在 
-                    <span class="article-title" @click="handleArticleClick(notification.articleId)">{{ notification.articleTitle }}</span> 中的评论
-                  </span>
-                  <span v-else>
-                    {{ notification.fromNickname }} 评论了你的文章
-                  </span>
-
-                  <div v-html="notification.message"></div>
-                </span>
-
-                <span v-if="notification.type === 'like'">
-                  {{ notification.toNickname }} 点赞了你的 
-                  <span class="article-title" @click="handleArticleClick(notification.articleId)">{{ notification.articleTitle }}</span>
-                  文章
-                </span>
-
-                <span v-if="notification.type === 'follow'">
-                  {{ notification.fromNickname }} 关注了你
-                </span>
-
-                <span v-if="notification.type === 'system'">
-                  {{ notification.message }}
-                </span>
+            <div class="notification-body" @click="handleNotificationClick(notification)">
+              <div class="notification-title-row">
+                <div class="notification-title">{{ notification.title }}</div>
+                <el-tag size="mini" type="danger">未读</el-tag>
               </div>
-          
-              <div class="notification-time">{{ formatTime(notification.createTime) }}</div>
+              <div class="notification-message">{{ getNotificationText(notification) }}</div>
+              <div class="notification-footer">
+                <span class="notification-time">{{ formatDisplayTime(notification.createTime) }}</span>
+              </div>
             </div>
             <div class="notification-actions">
-              <el-button 
-                type="text" 
+              <el-button
+                type="primary"
+                link
                 size="small"
-                @click.stop="deleteNotification(notification.id)"
+                :loading="isActionLoading(notification.id)"
+                @click.stop="markAsRead(notification.id)"
               >
-                <i class="fas fa-trash-alt"></i>
+                标为已读
               </el-button>
+              <el-button type="danger" link size="small" @click.stop="deleteNotification(notification.id)">删除</el-button>
             </div>
           </div>
-
-          <div class="pagination-box">
-            <el-pagination background v-if="notifications.length" @current-change="handlePageChange"
-              :current-page="params.pageNum" :page-size="params.pageSize" layout="prev, pager, next" :total="total">
-            </el-pagination>
-          </div>
-        </template>
-        
-        <div v-else class="empty-state">
-          <i class="fas fa-bell-slash"></i>
-          <p>暂无{{ currentCategoryName }}</p>
         </div>
-      </div>
+        <div v-else class="empty-state">
+          <i class="fas fa-check-circle"></i>
+          <p>暂无未读消息</p>
+        </div>
+      </section>
+
+      <section class="column-card">
+        <div class="column-header">
+          <span>已读消息</span>
+          <el-tag size="small">{{ readNotifications.length }}</el-tag>
+        </div>
+        <div v-if="readNotifications.length" class="column-list">
+          <div v-for="notification in readNotifications" :key="notification.id" class="notification-item">
+            <div class="notification-icon">
+              <i :class="getNotificationIcon(notification.type)"></i>
+            </div>
+            <div class="notification-body" @click="handleNotificationClick(notification)">
+              <div class="notification-title-row">
+                <div class="notification-title">{{ notification.title }}</div>
+                <el-tag size="mini">已读</el-tag>
+              </div>
+              <div class="notification-message">{{ getNotificationText(notification) }}</div>
+              <div class="notification-footer">
+                <span class="notification-time">{{ formatDisplayTime(notification.createTime) }}</span>
+              </div>
+            </div>
+            <div class="notification-actions">
+              <el-button type="danger" link size="small" @click.stop="deleteNotification(notification.id)">删除</el-button>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <p>暂无已读消息</p>
+        </div>
+      </section>
     </div>
+
+    <div class="pagination-box">
+      <el-pagination
+        background
+        v-if="filteredNotifications.length"
+        @current-change="handlePageChange"
+        :current-page="params.pageNum"
+        :page-size="params.pageSize"
+        layout="prev, pager, next"
+        :total="total"
+      />
+    </div>
+
+    <el-dialog
+      custom-class="notification-detail-dialog"
+      :visible.sync="detailVisible"
+      :fullscreen="isMobileDialog"
+      :width="isMobileDialog ? '100%' : '680px'"
+      :append-to-body="true"
+      :destroy-on-close="false"
+      @closed="handleDialogClosed"
+    >
+      <template slot="title">
+        <div class="detail-title-wrap">
+          <span>{{ activeNotification ? activeNotification.title : '消息详情' }}</span>
+          <el-tag v-if="activeNotification" :type="activeNotification.isRead ? '' : 'danger'" size="mini">
+            {{ activeNotification.isRead ? '已读' : '未读' }}
+          </el-tag>
+        </div>
+      </template>
+
+      <div v-if="activeNotification" class="detail-content" v-loading="detailLoading">
+        <div class="detail-meta">
+          <span>类型：{{ activeNotification.type === 'system' ? '系统消息' : '点赞消息' }}</span>
+          <span>发布时间：{{ formatDisplayTime(activeNotification.createTime) }}</span>
+        </div>
+        <div class="detail-message">{{ getNotificationText(activeNotification) }}</div>
+      </div>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button
+          v-if="activeNotification && !activeNotification.isRead"
+          type="primary"
+          :loading="isActionLoading(activeNotification.id)"
+          @click="markCurrentAsRead"
+        >
+          标记为已读
+        </el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getNotificationsApi, markNotificationAsReadApi, markAllNotificationsAsReadApi,
-   getUnreadNotificationsCountApi, deleteNotificationApi } from '@/api/message'
+import {
+  getNotificationsApi,
+  markNotificationAsReadApi,
+  markAllNotificationsAsReadApi,
+  getUnreadNotificationsCountApi,
+  deleteNotificationApi
+} from '@/api/message'
 import { formatTime } from '@/utils/time'
+
 export default {
   name: 'Notifications',
   data() {
     return {
       currentCategory: 'all',
       categories: [
-        { 
-          type: 'all',
-          name: '全部消息',
-          icon: 'fas fa-bell',
-          unread: 0
-        },
-        { 
-          type: 'system',
-          name: '系统消息',
-          icon: 'fas fa-cog',
-          unread: 0
-        },
-        { 
-          type: 'comment',
-          name: '评论消息',
-          icon: 'fas fa-comment',
-          unread: 0
-        },
-        { 
-          type: 'like',
-          name: '点赞消息',
-          icon: 'fas fa-heart',
-          unread: 0
-        },
-        { 
-          type: 'follow',
-          name: '关注消息',
-          icon: 'fas fa-user-plus',
-          unread: 0
-        }
+        { type: 'all', name: '全部类型', icon: 'fas fa-bell', unread: 0 },
+        { type: 'system', name: '系统消息', icon: 'fas fa-cog', unread: 0 },
+        { type: 'like', name: '点赞消息', icon: 'fas fa-heart', unread: 0 }
       ],
       notifications: [],
-      params:{
+      params: {
         pageNum: 1,
         pageSize: 10,
         type: null
       },
       total: 0,
-      loading: false
+      loading: false,
+      detailVisible: false,
+      detailLoading: false,
+      activeNotification: null,
+      actionLoadingIds: [],
+      markAllLoading: false,
+      viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 1200
     }
   },
   computed: {
-    currentCategoryName() {
-      const category = this.categories.find(c => c.type === this.currentCategory)
-      return category ? category.name : '全部消息'
-    },
     filteredNotifications() {
-      if (this.currentCategory === 'all') {
-        return this.notifications
-      }
-      return this.notifications.filter(n => n.type === this.currentCategory)
+      const source = this.notifications.filter(item => ['like', 'system'].includes(item.type))
+      if (this.currentCategory === 'all') return source
+      return source.filter(item => item.type === this.currentCategory)
+    },
+    unreadNotifications() {
+      return this.filteredNotifications.filter(item => !item.isRead)
+    },
+    readNotifications() {
+      return this.filteredNotifications.filter(item => item.isRead)
     },
     hasUnread() {
-      return this.filteredNotifications.some(notification => !notification.isRead)
+      return this.unreadNotifications.length > 0
+    },
+    isMobileDialog() {
+      return this.viewportWidth <= 768
     }
   },
   methods: {
-    /**
-     * 切换消息分类
-     */
     switchCategory(type) {
       this.currentCategory = type
       this.params.type = type === 'all' ? null : type
       this.params.pageNum = 1
       this.fetchNotifications()
     },
-    /**
-     * 获取消息通知图标
-     */
     getNotificationIcon(type) {
       const category = this.categories.find(c => c.type === type)
       return category ? category.icon : 'fas fa-bell'
     },
-    /**
-     * 格式化时间
-     */
-    formatTime(time) {
+    getNotificationText(notification) {
+      if (notification.type === 'system') return notification.message
+      if (notification.type === 'like') {
+        return notification.articleTitle ? `有人点赞了你的评论：${notification.articleTitle}` : '有人点赞了你的评论'
+      }
+      return notification.message || ''
+    },
+    formatDisplayTime(time) {
       return formatTime(time)
     },
-    /**
-     * 处理文章点击
-     */
+    isActionLoading(id) {
+      return this.actionLoadingIds.includes(String(id))
+    },
+    setActionLoading(id, loading) {
+      const key = String(id)
+      if (loading && !this.actionLoadingIds.includes(key)) {
+        this.actionLoadingIds.push(key)
+      }
+      if (!loading) {
+        this.actionLoadingIds = this.actionLoadingIds.filter(item => item !== key)
+      }
+    },
     handleArticleClick(id) {
       this.$router.push(`/post/${id}`)
     },
-    /**
-     * 更新未读数
-     */
-    updateUnreadCount(all) {
-      // 更新每个分类的未读数
+    extractCommentAnchor(notification) {
+      return (
+        notification.commentId ||
+        notification.parentCommentId ||
+        notification.sourceId ||
+        notification.targetId ||
+        notification.fromCommentId ||
+        ''
+      )
+    },
+    handleCommentJump(notification) {
+      const commentId = this.extractCommentAnchor(notification)
+      if (!notification.articleId) {
+        this.openNotificationDialog(notification)
+        return
+      }
+      this.$router.push({
+        path: `/post/${notification.articleId}`,
+        query: commentId ? { commentId: String(commentId), highlight: '1' } : {}
+      })
+    },
+    handleNotificationClick(notification) {
+      if (notification.type === 'system') {
+        this.openNotificationDialog(notification)
+        return
+      }
+
+      if (notification.type === 'like') {
+        this.handleCommentJump(notification)
+        return
+      }
+
+      this.openNotificationDialog(notification)
+    },
+    openNotificationDialog(notification) {
+      this.activeNotification = { ...notification }
+      this.detailVisible = true
+    },
+    updateLocalReadState(id, isRead = true) {
+      const targetId = String(id)
+      this.notifications = this.notifications.map(item => {
+        if (String(item.id) === targetId) {
+          return { ...item, isRead }
+        }
+        return item
+      })
+      if (this.activeNotification && String(this.activeNotification.id) === targetId) {
+        this.activeNotification = { ...this.activeNotification, isRead }
+      }
+      this.updateUnreadCount()
+    },
+    handleDialogClosed() {
+      this.activeNotification = null
+      this.detailLoading = false
+    },
+    handleResize() {
+      this.viewportWidth = window.innerWidth
+    },
+    updateUnreadCount(all = false) {
       this.categories.forEach(category => {
         if (all) {
           category.unread = 0
@@ -214,83 +297,77 @@ export default {
         if (category.type === 'all') {
           category.unread = this.notifications.filter(n => !n.isRead).length
         } else {
-          category.unread = this.notifications.filter(
-            n => n.type === category.type && !n.isRead
-          ).length
+          category.unread = this.notifications.filter(n => n.type === category.type && !n.isRead).length
         }
       })
     },
-    /**
-     * 获取消息通知
-     */
     async fetchNotifications() {
       this.loading = true
       try {
         const { data } = await getNotificationsApi(this.params)
-        this.notifications = data.records
-        this.total = data.total
+        this.notifications = ((data && data.records) || []).map(item => ({
+          ...item,
+          isRead: Boolean(item.isRead)
+        }))
+        this.total = (data && data.total) || 0
+        this.updateUnreadCount()
       } catch (error) {
+        this.notifications = []
+        this.total = 0
         this.$message.error('获取消息通知失败')
       } finally {
         this.loading = false
       }
     },
-
-    /**
-     * 处理分页
-     */
     handlePageChange(page) {
       this.params.pageNum = page
       this.fetchNotifications()
-    },  
-    /**
-     * 标记全部已读
-     */
+    },
     async markAllAsRead() {
+      if (this.markAllLoading) return
+      this.markAllLoading = true
       try {
         await markAllNotificationsAsReadApi()
-        this.fetchNotifications()
         this.updateUnreadCount(true)
+        await this.fetchNotifications()
         this.$message.success('已将所有消息标记为已读')
       } catch (error) {
         this.$message.error('操作失败')
+      } finally {
+        this.markAllLoading = false
       }
     },
-    /**
-     * 处理消息通知点击
-     */
-    async handleNotificationClick(notification) {
-      if (!notification.isRead) {
-        try {
-          await markNotificationAsReadApi(notification.id)
-          notification.isRead = true
-          this.updateUnreadCount()
-        } catch (error) {
-          this.$message.error('标记已读失败')
-        }
+    async markAsRead(id) {
+      if (this.isActionLoading(id)) return
+      this.setActionLoading(id, true)
+      try {
+        await markNotificationAsReadApi(id)
+        this.updateLocalReadState(id, true)
+        await this.getUnreadNotificationsCount()
+        this.$message.success('已标记为已读')
+      } catch (error) {
+        this.$message.error('标记已读失败')
+      } finally {
+        this.setActionLoading(id, false)
       }
     },
-    /**
-     * 删除消息通知
-     */
+    async markCurrentAsRead() {
+      if (!this.activeNotification || this.activeNotification.isRead) return
+      await this.markAsRead(this.activeNotification.id)
+    },
     async deleteNotification(id) {
       this.$confirm('确定要删除这条消息吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(async () => {
-        try {
+      })
+        .then(async () => {
           await deleteNotificationApi(id)
-          this.updateUnreadCount()
+          await this.fetchNotifications()
           this.$message.success('删除成功')
-        } catch (error) {
-          this.$message.error('删除失败')
-        }
-      }).catch(() => {})
+        })
+        .catch(() => {})
     },
-    /**
-     * 获取未读消息数量
-     */
     async getUnreadNotificationsCount() {
       const { data } = await getUnreadNotificationsCountApi()
       let unreadCount = 0
@@ -300,271 +377,241 @@ export default {
           unreadCount += category.unread
         }
       })
-      this.categories.find(c => c.type === 'all').unread = unreadCount
-    } 
+      const allCategory = this.categories.find(c => c.type === 'all')
+      if (allCategory) allCategory.unread = unreadCount
+    }
   },
   created() {
-    if(!this.$store.state.userInfo){
+    if (!this.$store.state.userInfo) {
       this.$router.push('/login')
       return
     }
+    const { type } = this.$route.query || {}
+    if (type && ['all', 'system', 'like'].includes(type)) {
+      this.currentCategory = type
+      this.params.type = type === 'all' ? null : type
+    }
     this.fetchNotifications()
     this.getUnreadNotificationsCount()
-    }
+  },
+  mounted() {
+    window.addEventListener('resize', this.handleResize)
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize)
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 .notifications-page {
-  display: flex;
-  gap: 20px;
-  max-width: 1400px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 20px;
   min-height: calc(100vh - 64px);
 }
 
-.notifications-sidebar {
-  width: 240px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
-  
-  .sidebar-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
-    
-    h2 {
-      font-size: 1.1em;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin: 0;
-    }
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-primary);
   }
-  
-  .category-item {
+
+  .header-actions {
     display: flex;
     align-items: center;
-    padding: 12px 20px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    
-    i {
-      font-size: 1.1em;
-      width: 24px;
-      margin-right: 12px;
-      
-      &.fa-bell { color: #1677ff; }
-      &.fa-cog { color: #52c41a; }
-      &.fa-comment { color: #722ed1; }
-      &.fa-heart { color: #eb2f96; }
-      &.fa-user-plus { color: #13c2c2; }
-    }
-    
-    span {
-      flex: 1;
-      font-size: 0.9em;
-    }
-    
-    &:hover {
-      background: rgba($primary, 0.04);
-    }
-    
-    &.active {
-      background: rgba($primary, 0.08);
-      color: $primary;
-      
-      i {
-        color: $primary;
-      }
-    }
-    
-    .category-badge {
-      margin-left: auto;
-      
-      :deep(.el-badge__content) {
-        background-color: $primary;
-        border: none;
-        padding: 0 6px;
-        height: 16px;
-        line-height: 16px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: normal;
-      }
-    }
+    gap: 10px;
   }
 }
 
-.notifications-main {
-  flex: 1;
-  min-width: 0;
-  
-  .notifications-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    
-    h1 {
-      font-size: 1.2em;
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-    
-    .header-actions {
-      .el-button {
-        color: $primary;
-        
-        i {
-          margin-right: 4px;
-        }
-      }
-    }
-  }
+.notifications-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.notifications-content {
+.column-card {
   background: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--border-color-rgb), 0.2);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.column-list {
+  padding: 8px;
 }
 
 .notification-item {
   display: flex;
   align-items: flex-start;
-  padding: 16px;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--card-bg);
-  transition: background-color 0.2s ease;
-  
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+
   &:hover {
-    background: rgba($primary, 0.02);
+    background: rgba($primary, 0.05);
   }
-  
-  .notification-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 4px;
-    background: rgba($primary, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 16px;
-    
-    i {
-      font-size: 1.1em;
-      
-      &.fa-bell { color: #1677ff; background: rgba(22, 119, 255, 0.1); }
-      &.fa-cog { color: #52c41a; background: rgba(82, 196, 26, 0.1); }
-      &.fa-comment { color: #722ed1; background: rgba(114, 46, 209, 0.1); }
-      &.fa-heart { color: #eb2f96; background: rgba(235, 47, 150, 0.1); }
-      &.fa-user-plus { color: #13c2c2; background: rgba(19, 194, 194, 0.1); }
-    }
-  }
-  
-  .notification-body {
-    flex: 1;
-    min-width: 0;
-    
-    .notification-title {
-      font-size: 1em;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-    
-    .notification-message {
-      font-size: 0.95em;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-      line-height: 1.5;
-      .article-title{
-        color: $primary;
-        cursor: pointer;
-        &:hover{
-          text-decoration: underline;
-        }
-      }
-    }
-    
-    .notification-time {
-      font-size: 0.85em;
-      color: var(--text-secondary);
-      margin-top: $spacing-sm;
-    }
-  }
-  
-  .notification-actions {
-    margin-left: 12px;
-    visibility: hidden;
-    
-    .el-button {
-      padding: 4px;
-      
-      i {
-        font-size: 0.9em;
-        color: var(--text-secondary);
-      }
-      
-      &:hover i {
-        color: #ff4d4f;
-      }
-    }
-  }
-  
-  &:hover .notification-actions {
-    visibility: visible;
-  }
-  
+
   &.unread {
-    background: rgba($primary, 0.04);
-    
-    &:hover {
-      background: rgba($primary, 0.06);
-    }
+    background: rgba($primary, 0.08);
   }
+}
+
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba($primary, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  i {
+    font-size: 14px;
+    color: $primary;
+  }
+}
+
+.notification-body {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.notification-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notification-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.notification-message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.notification-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .empty-state {
-  padding: 40px;
+  padding: 42px 14px;
   text-align: center;
   color: var(--text-secondary);
-  background: var(--card-bg);
-  border-radius: 8px;
-  
+
   i {
-    font-size: 2em;
-    margin-bottom: 12px;
+    font-size: 28px;
+    margin-bottom: 10px;
   }
-  
+
   p {
-    font-size: 0.95em;
     margin: 0;
+    font-size: 13px;
   }
 }
 
-// 移动端适配
+.pagination-box {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.detail-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-content {
+  min-height: 120px;
+}
+
+.detail-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.detail-message {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: rgba(var(--primary-rgb), 0.04);
+  padding: 14px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media screen and (max-width: 900px) {
+  .notifications-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .notifications-page {
-    padding: 16px;
+    padding: 12px;
   }
-  
-  .notifications-sidebar {
-    width: 100%;
+
+  .notifications-header {
+    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .category-item {
-    padding: 10px 16px;
-    
-    i {
-      margin-right: 8px;
-    }
+
+  .detail-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }
 </style>

@@ -25,6 +25,10 @@ public class EmailRegisterDto {
     @NotNull(message = "密码不能为空")
     private String password;
 
+    @ApiModelProperty(value = "安全码")
+    @NotNull(message = "安全码不能为空")
+    private String securityCode;
+
     @ApiModelProperty(value = "昵称")
     @NotNull(message = "昵称不能为空")
     private String nickname;

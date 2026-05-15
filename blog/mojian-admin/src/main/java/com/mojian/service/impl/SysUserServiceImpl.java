@@ -1,11 +1,8 @@
 package com.mojian.service.impl;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mojian.common.Constants;
-import com.mojian.common.RedisConstants;
 import com.mojian.dto.user.SysUserAddAndUpdateDto;
 import com.mojian.mapper.SysRoleMapper;
 import com.mojian.utils.PageUtil;
@@ -13,19 +10,15 @@ import com.mojian.entity.SysUser;
 import com.mojian.exception.ServiceException;
 import com.mojian.mapper.SysUserMapper;
 import com.mojian.service.SysUserService;
-import com.mojian.utils.RedisUtil;
-import com.mojian.vo.user.OnlineUserVo;
 import com.mojian.vo.user.SysUserVo;
 import com.mojian.vo.user.SysUserProfileVo;
-import org.apache.commons.lang3.StringUtils;
+import com.mojian.vo.user.OnlineUserVo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.StpUtil;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,12 +29,15 @@ import com.mojian.dto.user.UpdatePwdDTO;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
     private final SysRoleMapper roleMapper;
-    private final RedisUtil redisUtil;
-    private final SysUserMapper sysUserMapper;
 
     @Override
     public IPage<SysUserVo> listUsers(SysUser sysUser) {
         return baseMapper.selectUserPage(PageUtil.getPage(),sysUser);
+    }
+
+    @Override
+    public IPage<OnlineUserVo> getOnlineUserList(String username) {
+        return new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>();
     }
 
     @Override
@@ -130,37 +126,4 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return true;
     }
 
-    @Override
-    public IPage<OnlineUserVo> getOnlineUserList(String username) {
-        Integer pageNum = PageUtil.getPageQuery().getPageNum();
-        Integer pageSize = PageUtil.getPageQuery().getPageSize();
-
-        // 返回数据对象
-        Collection<String> keys = redisUtil.keys(RedisConstants.LOGIN_TOKEN.concat( "*"));
-
-        List<OnlineUserVo> totalList = new ArrayList<>();
-        for (String key : keys) {
-            Object userObj = redisUtil.get(key);
-            OnlineUserVo onlineUser = JSONUtil.toBean(userObj.toString(), OnlineUserVo.class);
-            if (StringUtils.isNotBlank(username)) {
-                if (onlineUser.getUsername().contains(username)) {
-                    totalList.add(onlineUser);
-                }
-                continue;
-            }
-            totalList.add(onlineUser);
-        }
-
-        //根据时间排序
-        totalList.sort((o1, o2) -> o2.getLastLoginTime().compareTo(o1.getLastLoginTime()));
-
-        int fromIndex = (pageNum - 1) * pageSize;
-        int toIndex = totalList.size() - fromIndex > pageSize ? fromIndex + pageSize : totalList.size();
-        List<OnlineUserVo> records = totalList.subList(fromIndex, toIndex);
-
-        IPage<OnlineUserVo> page = new Page<>(pageNum, pageSize);
-        page.setRecords(records);
-        page.setTotal(totalList.size());
-        return page;
-    }
 }

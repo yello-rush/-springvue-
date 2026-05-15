@@ -36,9 +36,6 @@ public class ChatSendMsgVo {
     @ApiModelProperty(value = "发送人头像")
     private String avatar;
 
-    @ApiModelProperty(value = "性别")
-    private Integer sex;
-
     @ApiModelProperty(value = "归属地")
     private String location;
 

@@ -75,6 +75,8 @@ public interface SysArticleMapper extends BaseMapper<SysArticle> {
 
     Boolean getUserIsCollect(@Param("articleId") Long articleId, @Param("userId") int userId);
 
+    Integer getCollectStatus(@Param("articleId") Long articleId, @Param("userId") int userId);
+
     /**
      * 文章取消点赞
      * @param articleId
@@ -92,6 +94,17 @@ public interface SysArticleMapper extends BaseMapper<SysArticle> {
     void like(@Param("articleId")Long articleId,@Param("userId")int userId);
 
     void collect(@Param("articleId")Long articleId,@Param("userId")int userId);
+
+    void reCollect(@Param("articleId")Long articleId,@Param("userId")int userId);
+
+    void recordCollectBehavior(@Param("userId") int userId,
+                               @Param("articleId") Long articleId,
+                               @Param("actionType") String actionType,
+                               @Param("resultCode") int resultCode,
+                               @Param("rateLimitCount") Integer rateLimitCount,
+                               @Param("rateLimitThreshold") Integer rateLimitThreshold,
+                               @Param("requestUri") String requestUri,
+                               @Param("clientIp") String clientIp);
 
     void saveOrUpdateHistory(@Param("articleId")Long articleId,@Param("userId")int userId);
 

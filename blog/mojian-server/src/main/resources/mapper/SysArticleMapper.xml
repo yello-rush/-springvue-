@@ -13,7 +13,6 @@
         <result property="cover" column="cover"/>
         <result property="contentMd" column="content_md"/>
         <result property="quantity" column="quantity"/>
-        <result property="isStick" column="is_stick"/>
         <result property="isRecommend" column="is_recommend"/>
         <result property="status" column="status"/>
         <result property="createTime" column="create_time"/>
@@ -59,8 +58,18 @@
     </insert>
 
     <insert id="collect">
-        INSERT INTO sys_article_collect(user_id, article_id) VALUES (#{userId}, #{articleId})
+        INSERT INTO sys_article_collect(user_id, article_id, status, operation_count, last_collect_time)
+        VALUES (#{userId}, #{articleId}, 1, 1, NOW())
     </insert>
+
+    <update id="reCollect">
+        UPDATE sys_article_collect
+        SET status = 1,
+            operation_count = operation_count + 1,
+            last_collect_time = NOW()
+        WHERE user_id = #{userId}
+          AND article_id = #{articleId}
+    </update>
 
     <insert id="saveOrUpdateHistory">
         INSERT INTO sys_user_article_history(user_id, article_id) VALUES (#{userId}, #{articleId})
@@ -86,9 +95,14 @@
         DELETE FROM sys_article_like WHERE user_id = #{userId} AND article_id = #{articleId}
     </delete>
 
-    <delete id="unCollect">
-        DELETE FROM sys_article_collect WHERE user_id = #{userId} AND article_id = #{articleId}
-    </delete>
+    <update id="unCollect">
+        UPDATE sys_article_collect
+        SET status = 0,
+            operation_count = operation_count + 1,
+            last_uncollect_time = NOW()
+        WHERE user_id = #{userId}
+          AND article_id = #{articleId}
+    </update>
 
 
     <select id="getArticleListApi" resultMap="articleResultMap">
@@ -100,7 +114,6 @@
             a.cover,
             a.content_md,
             a.quantity,
-            a.is_stick,
             a.create_time,
             a.update_time,
             a.first_accessed_time,
@@ -124,7 +137,7 @@
         <if test="keyword != null and keyword != ''">
             AND a.title like concat('%',#{keyword},'%')
         </if>
-        order by a.is_stick desc, a.create_time desc
+        order by a.create_time desc
     </select>
 
     <select id="getArticleDetail" resultMap="articleDetailResultMap">
@@ -137,7 +150,6 @@
             a.content_md,
             a.content,
             a.quantity,
-            a.is_stick,
             a.read_type,
             a.create_time,
             a.update_time,
@@ -180,7 +192,6 @@
             a.title,
             a.summary,
             a.cover,
-            a.is_stick,
             a.is_recommend,
             a.quantity,
             a.status,
@@ -208,7 +219,7 @@
                 AND a.id in (SELECT article_id FROM sys_article_tag WHERE tag_id = #{query.tagId})
             </if>
         </where>
-        order by a.is_stick desc, a.create_time desc
+        order by a.create_time desc
     </select>
 
     <select id="getThisYearContributionData" resultType="com.mojian.vo.dashboard.ContributionData">
@@ -239,6 +250,15 @@
         WHERE
             user_id = #{userId}
             AND article_id = #{articleId}
+            AND status = 1
+    </select>
+
+    <select id="getCollectStatus" resultType="java.lang.Integer">
+        SELECT status
+        FROM sys_article_collect
+        WHERE user_id = #{userId}
+          AND article_id = #{articleId}
+        LIMIT 1
     </select>
     <select id="selectCountByCategory" resultType="java.util.Map">
         SELECT
@@ -269,6 +289,30 @@
             a.user_id = #{userId}
         ORDER BY a.create_time DESC
     </select>
+
+    <insert id="recordCollectBehavior">
+        INSERT INTO sys_article_collect_log(
+            user_id,
+            article_id,
+            action_type,
+            result_code,
+            rate_limit_count,
+            rate_limit_threshold,
+            request_uri,
+            client_ip,
+            create_time
+        ) VALUES (
+            #{userId},
+            #{articleId},
+            #{actionType},
+            #{resultCode},
+            #{rateLimitCount},
+            #{rateLimitThreshold},
+            #{requestUri},
+            #{clientIp},
+            NOW()
+        )
+    </insert>
 
     <select id="selectMyHistory" resultType="com.mojian.vo.article.ArticleListVo">
         SELECT
@@ -305,6 +349,7 @@
                 LEFT JOIN sys_user c ON b.user_id = c.id
         WHERE
             a.user_id = #{userId}
+            AND a.status = 1
         ORDER BY a.create_time DESC
     </select>
 
@@ -316,7 +361,6 @@
             a.cover,
             a.content_md,
             a.quantity,
-            a.is_stick,
             a.status,
             a.create_time,
             c.name AS categoryName,
@@ -333,7 +377,7 @@
         <if test="article.title != null and article.title != ''">
             AND a.title like concat('%',#{article.title},'%')
         </if>
-        order by a.is_stick desc, a.create_time desc
+        order by a.create_time desc
     </select>
 
     <select id="getHotArticleList" resultMap="articleResultMap">

@@ -2,7 +2,24 @@
   <div class="floating-buttons" :class="{ 'show-top': showBackToTop }">
 
     <!-- Removed Chat Button -->
+    <el-tooltip v-if="currentArticleId" :content="isCollected ? '取消收藏' : '收藏文章'" placement="left">
+      <button
+        class="float-btn collect-btn"
+        :class="{ active: isCollected }"
+        :disabled="collectLoading"
+        @click="toggleCollect"
+        title="收藏文章"
+      >
+        <i class="fas fa-star"></i>
+      </button>
+    </el-tooltip>
  
+    <el-tooltip content="背景设置" placement="left">
+      <button class="float-btn bg-setting-btn" @click="toggleBackgroundPanel" title="背景设置">
+        <i class="fas fa-cog"></i>
+      </button>
+    </el-tooltip>
+
     <el-tooltip content="切换主题" placement="left">
       <button class="float-btn theme-btn" @click="toggleTheme" title="切换主题">
         <i :class="['fas', isDarkMode ? 'fa-sun' : 'fa-moon']"></i>
@@ -24,20 +41,107 @@
 
 <script>
 import { setThemeMode, initTheme, themeBus } from '@/utils/theme'
+import { collectArticleApi, getArticleDetailApi } from '@/api/article'
 
 export default {
   name: 'FloatingButtons',
   data() {
     return {
       isDarkMode: false,
-      showBackToTop: false
+      showBackToTop: false,
+      isCollected: false,
+      collectLoading: false,
+      currentArticleId: ''
+    }
+  },
+  watch: {
+    $route: {
+      immediate: true,
+      handler() {
+        this.syncCollectState()
+      }
     }
   },
   methods: {
+    getCollectStorageKey() {
+      return 'article-collect-state-map'
+    },
+    getCollectStateMap() {
+      try {
+        return JSON.parse(localStorage.getItem(this.getCollectStorageKey()) || '{}')
+      } catch (e) {
+        return {}
+      }
+    },
+    persistCollectState(articleId, status) {
+      const key = String(articleId)
+      const stateMap = this.getCollectStateMap()
+      stateMap[key] = Boolean(status)
+      localStorage.setItem(this.getCollectStorageKey(), JSON.stringify(stateMap))
+    },
+    getCurrentArticleId(route = this.$route) {
+      if (route.path && /^\/post\/\d+/.test(route.path)) {
+        return String(route.params?.id || '')
+      }
+      return ''
+    },
+    async syncCollectState() {
+      const articleId = this.getCurrentArticleId()
+      this.currentArticleId = articleId
+      if (!articleId) {
+        this.isCollected = false
+        return
+      }
+      const stateMap = this.getCollectStateMap()
+      if (Object.prototype.hasOwnProperty.call(stateMap, articleId)) {
+        this.isCollected = Boolean(stateMap[articleId])
+      }
+      try {
+        const res = await getArticleDetailApi(articleId)
+        const serverStatus = Boolean(res?.data?.isFavorite || res?.data?.isCollected)
+        this.isCollected = serverStatus
+        this.persistCollectState(articleId, serverStatus)
+      } catch (error) {
+        // 使用本地缓存兜底，不中断用户交互
+      }
+    },
+    async toggleCollect() {
+      if (!this.currentArticleId || this.collectLoading) return
+      if (!this.$store.state.userInfo) {
+        this.$message.warning('请先登录')
+        return
+      }
+      this.collectLoading = true
+      try {
+        await collectArticleApi(this.currentArticleId)
+        this.isCollected = !this.isCollected
+        this.persistCollectState(this.currentArticleId, this.isCollected)
+        window.dispatchEvent(new CustomEvent('article-collect-updated', {
+          detail: {
+            articleId: this.currentArticleId,
+            isFavorite: this.isCollected
+          }
+        }))
+        this.$message.success(this.isCollected ? '收藏成功' : '已取消收藏')
+      } catch (error) {
+        this.$message.error(error.message || '收藏操作失败')
+      } finally {
+        this.collectLoading = false
+      }
+    },
+    handleExternalCollectUpdate(event) {
+      const { articleId, isFavorite } = event?.detail || {}
+      if (!articleId || String(articleId) !== String(this.currentArticleId)) return
+      this.isCollected = Boolean(isFavorite)
+      this.persistCollectState(this.currentArticleId, this.isCollected)
+    },
     toggleTheme() {
       this.isDarkMode = !this.isDarkMode
       const mode = this.isDarkMode ? 'dark' : 'light'
       setThemeMode(mode)
+    },
+    toggleBackgroundPanel() {
+      themeBus.$emit('background-config-toggle')
     },
     scrollToTop() {
       window.scrollTo({
@@ -57,9 +161,11 @@ export default {
     })
     
     window.addEventListener('scroll', this.handleScroll)
+    window.addEventListener('article-collect-updated', this.handleExternalCollectUpdate)
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.handleScroll)
+    window.removeEventListener('article-collect-updated', this.handleExternalCollectUpdate)
     themeBus.$off('theme-change')
   }
 }
@@ -72,7 +178,7 @@ export default {
   bottom: 50px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
   z-index: 999;
 }
 
@@ -95,6 +201,18 @@ export default {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     color: var(--primary);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &.collect-btn.active {
+    color: #f7ba2a;
+    background: rgba(247, 186, 42, 0.12);
+    border-color: rgba(247, 186, 42, 0.35);
+    box-shadow: 0 8px 20px rgba(247, 186, 42, 0.25);
   }
 
   &.theme-btn {

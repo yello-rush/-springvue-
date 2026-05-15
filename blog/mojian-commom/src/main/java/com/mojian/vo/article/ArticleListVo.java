@@ -50,9 +50,6 @@ public class ArticleListVo {
     @ApiModelProperty(value = "文章阅读量")
     private Integer quantity;
 
-    @ApiModelProperty(value = "是否置顶 0否 1是")
-    private Integer isStick;
-
     @ApiModelProperty(value = "是否推荐 0否 1是")
     private Integer isRecommend;
 

@@ -34,12 +34,6 @@
 
         <dependency>
             <groupId>com.mojian</groupId>
-            <artifactId>mojian-quartz</artifactId>
-            <version>${package.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mojian</groupId>
             <artifactId>mojian-auth</artifactId>
             <version>${package.version}</version>
         </dependency>

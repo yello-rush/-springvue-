@@ -1,6 +1,5 @@
 package com.mojian.controller.album;
 
-import com.mojian.annotation.AccessLimit;
 import com.mojian.common.Result;
 import com.mojian.entity.SysAlbum;
 import com.mojian.entity.SysPhoto;
@@ -46,7 +45,6 @@ public class AlbumController {
         return Result.success(albumService.getPhotos(albumId));
     }
 
-    @AccessLimit(count = 5, time = 30)
     @GetMapping("/verify/{id}")
     @ApiOperation(value = "验证相册的密码")
     public Result<Boolean> verify(@PathVariable Long id,String password) {

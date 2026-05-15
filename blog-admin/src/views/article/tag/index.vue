@@ -49,7 +49,6 @@
         >
           <el-table-column type="selection"  width="55" align="center" />
           <el-table-column label="名称" align="center" prop="name" show-overflow-tooltip />
-          <el-table-column label="排序" align="center" prop="sort" show-overflow-tooltip />
           <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
           <el-table-column label="操作" align="center" width="280" fixed="right">
             <template #default="scope">
@@ -109,14 +108,6 @@
                     clearable
                 />
             </el-form-item>
-            <el-form-item label="排序" prop="sort">
-                <el-input-number
-                    :min="1"
-                    v-model="tagForm.sort" 
-                    placeholder="请输入排序"
-                    clearable 
-                />
-            </el-form-item>
         </el-form>
   
         <template #footer>
@@ -167,7 +158,6 @@
   const tagForm = reactive({
     id: undefined,
     name: '',
-    sort: 0,
   })
   
   // 表单校验规则
@@ -175,9 +165,6 @@
     name: [
       { required: true, message: '请输入名称', trigger: 'blur' },
       { min: 3, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-    ],
-    sort: [
-      { required: true, message: '请输入排序', trigger: 'blur' }
     ]
   })
   
@@ -252,7 +239,6 @@
     dialog.visible = true
     tagForm.id = undefined
     tagForm.name = ''
-    tagForm.sort = 0
   }
   
   // 修改标签

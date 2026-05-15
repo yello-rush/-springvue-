@@ -4,7 +4,14 @@
       <transition-group name="post-list" tag="div" class="posts-grid">
         <article v-for="post in articles" :key="post.id" class="post-card" @click="$emit('article-click', post.id)">
           <div class="card-cover">
-            <img v-lazy="getArticleCover(post)" :key="getArticleCover(post)" :alt="post.title">
+            <img
+              v-lazy="getArticleCover(post)"
+              :alt="post.title"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low"
+              referrerpolicy="no-referrer"
+            >
             <div class="card-category">{{ post.categoryName }}</div>
           </div>
           
@@ -60,7 +67,7 @@
 import { formatTime } from '@/utils/time'
 import TransitionLoader from '@/components/common/TransitionLoader.vue'
 import { getPublishTime, getViewCount, getEstimatedReadTime, getLikeCount, getFavoriteCount } from "@/utils/article";
-import { normalizeImageUrl } from '@/utils/url'
+import { normalizeImageUrl, getOptimizedImageUrl } from '@/utils/url'
 
 export default {
   name: 'ArticleList',
@@ -96,7 +103,8 @@ export default {
     getFavoriteCount,
     getArticleCover(post) {
       if (post.cover) {
-        return normalizeImageUrl(post.cover);
+        const normalized = normalizeImageUrl(post.cover)
+        return getOptimizedImageUrl(normalized, { width: 720, quality: 75 })
       }
       // If no cover, try to match local image by article id
       return `/gallery/article-${post.id}.jpg`;

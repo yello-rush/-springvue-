@@ -25,7 +25,6 @@
         WHERE
             a.status = 'publish'
         ORDER BY
-            a.is_stick DESC,
             a.create_time DESC
     </select>
 </mapper>

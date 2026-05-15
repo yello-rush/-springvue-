@@ -45,14 +45,14 @@ public class SysComment implements Serializable {
     @ApiModelProperty(value = "ip")
     private String ip;
 
-    @ApiModelProperty(value = "ip来源")
-    private String ipSource;
-
     @ApiModelProperty(value = "浏览器")
     private String browser;
 
     @ApiModelProperty(value = "系统")
     private String system;
+
+    @ApiModelProperty(value = "ip来源")
+    private String ipSource;
 
     @ApiModelProperty(value = "创建时间")
     @TableField(fill = FieldFill.INSERT)

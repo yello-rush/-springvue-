@@ -3,6 +3,7 @@ package com.mojian.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.mojian.common.RedisConstants;
@@ -25,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,23 +51,34 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean collect(Long articleId) {
-        String loginIdAsString = StpUtil.getLoginIdAsString();
-        Integer userId = Integer.valueOf(loginIdAsString);
-        Boolean userIsCollect = sysArticleMapper.getUserIsCollect(articleId, userId);
+        Integer userId = getCurrentUserId();
+        Integer collectStatus = sysArticleMapper.getCollectStatus(articleId, userId);
 
-        LambdaUpdateWrapper<SysArticle> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(SysArticle::getId, articleId);
+        UpdateWrapper<SysArticle> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", articleId);
         SysArticle sysArticle = sysArticleMapper.selectById(articleId);
+        int currentFavoriteNum = sysArticle.getFavoriteNum() == null ? 0 : sysArticle.getFavoriteNum();
+        HttpServletRequest request = currentRequest();
+        String requestUri = request == null ? null : request.getRequestURI();
+        String clientIp = currentIp();
 
-        if (userIsCollect) {
+        if (Integer.valueOf(1).equals(collectStatus)) {
             sysArticleMapper.unCollect(articleId, userId);
-            updateWrapper.set(SysArticle::getFavoriteNum, sysArticle.getFavoriteNum() - 1);
+            updateWrapper.set("favorite_num", Math.max(0, currentFavoriteNum - 1));
             sysArticleMapper.update(null, updateWrapper);
+            recordCollectBehavior(userId, articleId, "UN_COLLECT", 200, null, null, requestUri, clientIp);
             return false;
+        } else if (Integer.valueOf(0).equals(collectStatus)) {
+            sysArticleMapper.reCollect(articleId, userId);
+            updateWrapper.set("favorite_num", currentFavoriteNum + 1);
+            sysArticleMapper.update(null, updateWrapper);
+            recordCollectBehavior(userId, articleId, "COLLECT", 200, null, null, requestUri, clientIp);
+            return true;
         } else {
             sysArticleMapper.collect(articleId, userId);
-            updateWrapper.set(SysArticle::getFavoriteNum, sysArticle.getFavoriteNum() + 1);
+            updateWrapper.set("favorite_num", currentFavoriteNum + 1);
             sysArticleMapper.update(null, updateWrapper);
+            recordCollectBehavior(userId, articleId, "COLLECT", 200, null, null, requestUri, clientIp);
             return true;
         }
     }
@@ -252,5 +264,27 @@ public class ArticleServiceImpl implements ArticleService {
                 .title(item.getTitle())
                 .createTime(item.getCreateTime())
                 .build()).collect(Collectors.toList());
+    }
+
+    private void recordCollectBehavior(int userId, Long articleId, String actionType, int resultCode,
+                                       Integer rateLimitCount, Integer rateLimitThreshold, String requestUri, String clientIp) {
+        try {
+            sysArticleMapper.recordCollectBehavior(userId, articleId, actionType, resultCode,
+                    rateLimitCount, rateLimitThreshold, requestUri, clientIp);
+        } catch (Exception ex) {
+            log.warn("记录收藏行为日志失败 userId={}, articleId={}, actionType={}", userId, articleId, actionType, ex);
+        }
+    }
+
+    protected Integer getCurrentUserId() {
+        return Integer.valueOf(StpUtil.getLoginIdAsString());
+    }
+
+    protected HttpServletRequest currentRequest() {
+        return IpUtil.getRequest();
+    }
+
+    protected String currentIp() {
+        return IpUtil.getIp();
     }
 }

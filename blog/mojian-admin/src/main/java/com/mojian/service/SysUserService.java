@@ -17,6 +17,8 @@ public interface SysUserService extends IService<SysUser> {
      */
     IPage<SysUserVo> listUsers(SysUser sysUser);
 
+    IPage<OnlineUserVo> getOnlineUserList(String username);
+
     /**
      * 新增用户
      */
@@ -65,12 +67,5 @@ public interface SysUserService extends IService<SysUser> {
      * @return
      */
     Boolean resetPassword(SysUser user);
-
-    /**
-     * 获取在线用户列表
-     * @return
-     */
-    IPage<OnlineUserVo> getOnlineUserList(String username);
-
 
 }

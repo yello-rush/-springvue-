@@ -48,20 +48,11 @@ public class SysArticle implements Serializable {
     @ApiModelProperty(value = "文章内容md格式")
     private String contentMd;
 
-    @ApiModelProperty(value = "阅读方式 0无需验证 1：评论阅读 2：点赞阅读 3：扫码阅读")
-    private Integer readType;
-
-    @ApiModelProperty(value = "是否置顶 0否 1是")
-    private Integer isStick;
-
     @ApiModelProperty(value = "状态 review：审核 publish：上架 offline：下架 draft：草稿")
     private String status;
 
     @ApiModelProperty(value = "是否首页轮播")
     private Integer isCarousel;
-
-    @ApiModelProperty(value = "是否推荐")
-    private Integer isRecommend;
 
     @ApiModelProperty(value = "文章阅读量")
     private Integer quantity;
@@ -72,9 +63,14 @@ public class SysArticle implements Serializable {
     @ApiModelProperty(value = "关键词")
     private String keywords;
 
-
     @ApiModelProperty(value = "Ai生成的简短描述")
     private String aiDescribe;
+
+    @ApiModelProperty(value = "热度")
+    private Double heatScore;
+
+    @ApiModelProperty(value = "是否归档 0:否 1:是")
+    private Integer isArchived;
 
     @ApiModelProperty(value = "创建时间")
     @TableField(fill = FieldFill.INSERT)

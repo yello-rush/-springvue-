@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build && npm run check-legacy",
     "check-legacy": "if grep -r '墨笔' src/ ; then exit 1; else exit 0; fi",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:ch5:screenshot": "playwright test tests/ch5-screenshot.spec.js"
   },
   "dependencies": {
     "@types/dompurify": "^3.2.0",

@@ -3,8 +3,8 @@
         <!-- 搜索表单 -->
         <div class="search-wrapper">
             <el-form :model="queryParams" ref="queryFormRef" inline>
-                <el-form-item label="反馈类型" prop="type">
-                    <el-select v-model="queryParams.type" placeholder="请选择反馈类型" clearable @keyup.enter="handleQuery">
+                <el-form-item label="反馈类型" prop="feedbackType">
+                    <el-select v-model="queryParams.feedbackType" placeholder="请选择反馈类型" clearable @keyup.enter="handleQuery">
                         <el-option v-for="item in feedbackTypes" :key="item.value" :label="item.label"
                             :value="item.value" />
                     </el-select>
@@ -41,10 +41,10 @@
                     </template>
                 </el-table-column>
                 <el-table-column label="反馈人昵称" align="center" prop="nickname" />
-                <el-table-column label="反馈类型" align="center" prop="type">
+                <el-table-column label="反馈类型" align="center" prop="feedbackType">
                     <template #default="scope">
                         <span v-for="item in feedbackTypes">
-                            <el-tag v-if="item.value === scope.row.type" :key="item.value" :type="item.style">
+                            <el-tag v-if="item.value === scope.row.feedbackType" :key="item.value" :type="item.style">
                                 {{ item.label }}
                             </el-tag>
                         </span>
@@ -114,15 +114,10 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
     listSysFeedbackApi,
-    detailSysFeedbackApi,
     deleteSysFeedbackApi,
     addSysFeedbackApi,
     updateSysFeedbackApi
 } from '@/api/message/feedback'
-
-import {
-    getDictDataByDictTypesApi
-} from '@/api/system/dict'
 
 // 遮罩层
 const loading = ref(true)
@@ -140,7 +135,7 @@ const open = ref(false)
 const queryParams = reactive({
     pageNum: 1,
     pageSize: 10,
-    type: undefined,
+    feedbackType: undefined,
     status: undefined,
     source: 'admin'
 })
@@ -162,6 +157,17 @@ const formRef = ref()
 
 const feedbackTypes = ref<any[]>([])
 const feedbackStatus = ref<any[]>([])
+const DEFAULT_FEEDBACK_TYPES = [
+    { label: '功能建议', value: 'function_suggestion', style: 'primary' },
+    { label: 'Bug反馈', value: 'bug_report', style: 'danger' },
+    { label: '性能问题', value: 'performance_issue', style: 'warning' },
+    { label: '界面优化', value: 'ui_optimization', style: 'success' },
+    { label: '其他', value: 'other', style: 'info' }
+]
+const DEFAULT_FEEDBACK_STATUS = [
+    { label: '未处理', value: '0', style: 'danger' },
+    { label: '已处理', value: '1', style: 'success' }
+]
 
 
 
@@ -176,6 +182,8 @@ const getList = () => {
 }
 
 const getDicts = () => {
+    feedbackTypes.value = DEFAULT_FEEDBACK_TYPES
+    feedbackStatus.value = DEFAULT_FEEDBACK_STATUS
 }
 
 /** 取消按钮 */
@@ -189,7 +197,7 @@ const reset = () => {
     form.value = {
         id: undefined,
         userId: undefined,
-        type: undefined,
+        feedbackType: undefined,
         content: undefined,
         email: undefined,
         replyContent: undefined,

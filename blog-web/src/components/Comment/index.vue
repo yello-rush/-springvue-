@@ -47,7 +47,13 @@
       </div>
 
       <template v-if="sortedComments.length">
-        <div v-for="comment in sortedComments" :key="comment.id" :id="`comment-${comment.id}`" class="comment-item">
+        <div
+          v-for="comment in sortedComments"
+          :key="comment.id"
+          :id="`comment-${comment.id}`"
+          class="comment-item"
+          :class="{ 'is-highlight': String(highlightedCommentId) === String(comment.id) }"
+        >
           <div class="comment-avatar">
             <img :src="comment.avatar" :alt="comment.nickname" />
           </div>
@@ -56,9 +62,6 @@
               <div class="comment-info">
                 <span class="nickname">{{ comment.nickname }}</span>
                 <span class="author-tag" v-if="comment.userId === articleAuthorId">作者</span>
-                <span class="ipSource">
-                  IP属地:{{ formatIpSource(comment.ipSource) }}
-                </span>
                 <span class="time">{{ formatTime(comment.createTime) }}</span>
               </div>
               <div class="comment-actions">
@@ -76,7 +79,13 @@
 
             <!-- 回复列表 -->
             <div v-if="comment.children?.length" class="replies-list">
-              <div v-for="reply in comment.children" :key="reply.id" class="reply-item">
+              <div
+                v-for="reply in comment.children"
+                :key="reply.id"
+                class="reply-item"
+                :id="`reply-${reply.id}`"
+                :class="{ 'is-highlight': String(highlightedCommentId) === String(reply.id) }"
+              >
                 <div class="reply-avatar">
                   <img :src="reply.avatar" :alt="reply.nickname" />
                 </div>
@@ -88,9 +97,6 @@
                       <span class="reply-to">
                         回复
                         <span class="target">@{{ reply.replyNickname }}</span>
-                      </span>
-                      <span class="ipSource">
-                        IP属地:{{ formatIpSource(reply.ipSource) }}
                       </span>
                       <span class="time">{{
                         formatTime(reply.createTime)
@@ -179,7 +185,6 @@
 import { mapState } from "vuex";
 import { getCommentsApi, addCommentApi, likeCommentApi } from "@/api/article";
 import { formatTime } from "@/utils/time.js";
-import { getBrowserInfo } from "@/utils/browser.js";
 
 export default {
   name: "Comment",
@@ -212,10 +217,11 @@ export default {
       sortBy: "newest",
       showReplyBox: false,
       activeReplyId: null,
-      browserInfo: null,
       total: 0,
       countdown: 0,
       canComment: true,
+      highlightedCommentId: null,
+      highlightTimer: null
     };
   },
   computed: {
@@ -257,13 +263,25 @@ export default {
         this.$message.warning("请先登录");
         return;
       }
+      if (comment._likeLoading) {
+        return;
+      }
+      const alreadyLiked = Boolean(comment.isLiked || comment.isLike);
+      if (alreadyLiked) {
+        this.$message.info("你已经点过赞了");
+        return;
+      }
       try {
+        this.$set(comment, "_likeLoading", true);
         await likeCommentApi(comment.id);
         comment.likeCount = (comment.likeCount || 0) + 1;
-        comment.isLiked = true;
+        this.$set(comment, "isLiked", true);
+        this.$set(comment, "isLike", true);
         this.$message.success("点赞成功");
       } catch (error) {
         this.$message.error(error.message || "点赞失败");
+      } finally {
+        this.$set(comment, "_likeLoading", false);
       }
     },
 
@@ -273,11 +291,42 @@ export default {
     async getComments() {
       try {
         const res = await getCommentsApi(this.params);
-        this.comments = res.data.records;
+        const records = (res?.data?.records || []).map((item) => ({
+          ...item,
+          isLiked: Boolean(item.isLiked || item.isLike),
+          children: (item.children || []).map((child) => ({
+            ...child,
+            isLiked: Boolean(child.isLiked || child.isLike),
+          })),
+        }));
+        this.comments = records;
         this.total = res.data.total;
+        this.$nextTick(() => {
+          this.highlightByRoute();
+        });
       } catch (error) {
         this.$message.error("获取评论失败");
       }
+    },
+    highlightByRoute() {
+      const commentId = this.$route?.query?.commentId;
+      if (!commentId) return;
+      this.highlightComment(commentId);
+    },
+    highlightComment(commentId) {
+      if (!commentId) return;
+      const commentSelector = `#comment-${commentId}`;
+      const replySelector = `#reply-${commentId}`;
+      const target = document.querySelector(commentSelector) || document.querySelector(replySelector);
+      if (!target) return;
+      this.highlightedCommentId = String(commentId);
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (this.highlightTimer) {
+        clearTimeout(this.highlightTimer);
+      }
+      this.highlightTimer = setTimeout(() => {
+        this.highlightedCommentId = null;
+      }, 3000);
     },
 
     /**
@@ -319,7 +368,6 @@ export default {
         const newComment = {
           content: this.commentContent,
           articleId: this.articleId,
-          browser: this.browserInfo?.name + " " + this.browserInfo?.version,
         };
 
         await addCommentApi(newComment);
@@ -431,19 +479,6 @@ export default {
       }
     },
     /**
-     * 点赞评论
-     */
-    async likeComment(comment) {
-      try {
-        // 点赞评论的 API 调用
-        // await likeComment(comment.id)
-        comment.isLiked = !comment.isLiked;
-        comment.likeCount += comment.isLiked ? 1 : -1;
-      } catch (error) {
-        this.$message.error("操作失败");
-      }
-    },
-    /**
      * 切换表情面板
      */
     toggleEmojiPanel() {
@@ -495,12 +530,6 @@ export default {
       return formatTime(time);
     },
     /**
-     * 格式化IP来源
-     */
-    formatIpSource(ipSource) {
-      return ipSource ? ipSource.split("|")[1] : "";
-    },
-    /**
      * 回复子评论
      */
     handleReplyChild(reply) {
@@ -550,8 +579,22 @@ export default {
   },
   created() {
     this.getComments();
-    this.browserInfo = getBrowserInfo();
   },
+  watch: {
+    "$route.query.commentId": {
+      immediate: true,
+      handler(val) {
+        if (!val) return;
+        this.$nextTick(() => this.highlightComment(val));
+      }
+    }
+  },
+  beforeDestroy() {
+    if (this.highlightTimer) {
+      clearTimeout(this.highlightTimer);
+      this.highlightTimer = null;
+    }
+  }
 };
 </script>
 
@@ -713,6 +756,11 @@ export default {
     padding: $spacing-md;
     border-bottom: 1px dashed var(--border-color);
 
+    &.is-highlight {
+      background: rgba(255, 214, 102, 0.28);
+      border-radius: 10px;
+    }
+
     &:last-child {
       border-bottom: none;
     }
@@ -766,10 +814,6 @@ export default {
             font-size: 0.9em;
           }
 
-          .ipSource {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-          }
         }
 
         .comment-actions {
@@ -822,6 +866,11 @@ export default {
       gap: $spacing-md;
       padding: $spacing-md 0;
 
+      &.is-highlight {
+        background: rgba(255, 214, 102, 0.4);
+        border-radius: 8px;
+      }
+
       .reply-avatar {
         flex-shrink: 0;
 
@@ -867,10 +916,6 @@ export default {
               font-size: 0.9em;
             }
 
-            .ipSource {
-              color: var(--text-secondary);
-              font-size: 0.9em;
-            }
           }
 
           .comment-actions {

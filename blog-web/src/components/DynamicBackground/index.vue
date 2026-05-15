@@ -4,9 +4,6 @@
     
     <!-- Configuration Panel -->
     <div class="bg-config-panel" :class="{ 'is-open': panelOpen }">
-      <div class="toggle-btn" @click="panelOpen = !panelOpen">
-        <i class="fas fa-cog" :class="{ 'fa-spin': !panelOpen }"></i>
-      </div>
       <div class="panel-content">
         <h4 style="margin-bottom: 15px; text-align: center;">背景特效设置</h4>
         
@@ -30,6 +27,8 @@
 </template>
 
 <script>
+import { themeBus } from '@/utils/theme'
+
 export default {
   name: 'DynamicBackground',
   props: {
@@ -58,11 +57,13 @@ export default {
     window.addEventListener('resize', this.handleResize);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mouseout', this.handleMouseOut);
+    themeBus.$on('background-config-toggle', this.togglePanel);
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mouseout', this.handleMouseOut);
+    themeBus.$off('background-config-toggle', this.togglePanel);
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
@@ -73,6 +74,9 @@ export default {
     }
   },
   methods: {
+    togglePanel() {
+      this.panelOpen = !this.panelOpen;
+    },
     initCanvas() {
       const canvas = this.$refs.canvas;
       this.ctx = canvas.getContext('2d');
@@ -206,39 +210,22 @@ export default {
 
 .bg-config-panel {
   position: fixed;
-  left: -260px;
-  top: 30%;
+  right: 24px;
+  bottom: 120px;
+  transform: translateX(calc(100% + 24px));
   width: 260px;
-  background: var(--surface);
-  border: 1px solid var(--border-color);
-  border-radius: 0 12px 12px 0;
-  box-shadow: var(--shadow-lg);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 9999;
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transition: all 360ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .bg-config-panel.is-open {
-  left: 0;
-}
-
-.toggle-btn {
-  position: absolute;
-  right: -40px;
-  top: 20px;
-  width: 40px;
-  height: 40px;
-  background: var(--surface);
-  border: 1px solid var(--border-color);
-  border-left: none;
-  border-radius: 0 8px 8px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 4px 0 8px rgba(0,0,0,0.05);
-  color: var(--text-primary);
-  font-size: 1.2rem;
+  transform: translateX(0);
 }
 
 .panel-content {
@@ -269,5 +256,13 @@ export default {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .bg-config-panel {
+    right: 14px;
+    bottom: 100px;
+    width: min(260px, calc(100vw - 28px));
+  }
 }
 </style>

@@ -44,55 +44,63 @@
           <i class="fas fa-search" @click="handleDesktopSearch"></i>
         </div>
 
-        <!-- 主题切换按钮 -->
-        <a href="javascript:void(0)" class="theme-btn" @click="toggleTheme">
-          <i class="fas" :class="theme === 'dark' ? 'fa-sun' : 'fa-moon'"></i>
+        <a href="javascript:void(0)" class="calendar-toggle-btn" @click="toggleCalendarPanel" aria-label="打开签到日历">
+          <svg class="calendar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span v-if="showCalendarBadge" class="calendar-badge"></span>
         </a>
 
         <!-- 修改消息按钮的跳转路径 -->
-        <div class="message-btn-wrapper" @mouseenter="showMessageDropdown = true" @mouseleave="showMessageDropdown = false">
-          <div class="message-btn">
+        <div class="message-btn-wrapper" @mouseleave="handleMessageMouseLeave" @mouseenter="cancelMessageAutoClose">
+          <button class="message-btn" type="button" @click.stop="toggleMessageDropdown" aria-label="消息通知">
             <i class="far fa-bell"></i>
-            <span class="message-count" v-if="hasUnread" />
-          </div>
-          
-          <div class="message-dropdown" v-show="showMessageDropdown">
-            <div class="dropdown-header">
-              <span>消息通知</span>
+            <span class="message-count" v-if="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          </button>
+          <transition name="dropdown-fade">
+            <div class="message-dropdown" v-show="showMessageDropdown" @mouseenter="cancelMessageAutoClose">
+              <div class="dropdown-header">
+                <span>消息通知</span>
+              </div>
+              <div class="dropdown-content">
+                <template v-if="isLoggedIn">
+                  <div v-if="unreadLikeCount > 0" class="message-item" @click="openMessagePanel('like')">
+                    <i class="fas fa-thumbs-up text-danger"></i>
+                    <div class="message-info">
+                      <span class="title">未读点赞</span>
+                      <span class="desc">有人点赞了你的评论（{{ unreadLikeCount }}）</span>
+                    </div>
+                  </div>
+                  <div v-if="unreadSystemCount > 0" class="message-item" @click="openMessagePanel('system')">
+                    <i class="fas fa-bullhorn text-primary"></i>
+                    <div class="message-info">
+                      <span class="title">系统消息</span>
+                      <span class="desc">未读系统通知（{{ unreadSystemCount }}）</span>
+                    </div>
+                  </div>
+                  <div v-if="unreadCount === 0" class="message-item" @click="openMessagePanel('system')">
+                    <i class="fas fa-bell text-primary"></i>
+                    <div class="message-info">
+                      <span class="title">查看消息</span>
+                      <span class="desc">当前无未读消息，点击查看历史系统通知</span>
+                    </div>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="message-item" @click="handleLogin">
+                    <i class="fas fa-info-circle" style="color: #e6a23c;"></i>
+                    <div class="message-info">
+                      <span class="title">系统提示</span>
+                      <span class="desc">登录后即可发表评论、点赞文章，享受更多专属功能！</span>
+                    </div>
+                  </div>
+                </template>
+              </div>
             </div>
-            <div class="dropdown-content">
-              <template v-if="isLoggedIn">
-                <router-link to="/notifications" class="message-item" @click.native="handleReadMessage">
-                  <i class="fas fa-comment-dots text-primary"></i>
-                  <div class="message-info">
-                    <span class="title">回复与评论</span>
-                    <span class="desc">查看文章评论与回复</span>
-                  </div>
-                </router-link>
-                <router-link to="/notifications" class="message-item" @click.native="handleReadMessage">
-                  <i class="fas fa-thumbs-up text-danger"></i>
-                  <div class="message-info">
-                    <span class="title">点赞与收藏</span>
-                    <span class="desc">有人点赞或收藏了您的文章</span>
-                  </div>
-                </router-link>
-                <div class="dropdown-divider"></div>
-                <div class="join-time-wrapper">
-                  <i class="fas fa-calendar-alt"></i>
-                  <span class="join-time-text">您已加入博客 {{ joinDays }} 天</span>
-                </div>
-              </template>
-              <template v-else>
-                <div class="message-item" @click="handleReadMessage">
-                  <i class="fas fa-info-circle" style="color: #e6a23c;"></i>
-                  <div class="message-info">
-                    <span class="title">系统提示</span>
-                    <span class="desc">登录后即可发表评论、点赞文章，享受更多专属功能！</span>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
+          </transition>
         </div>
         
         <div class="user-info">
@@ -134,13 +142,63 @@
         </div>
       </div>
     </nav>
+    <transition name="message-panel-fade">
+      <section
+        v-if="messagePanelVisible"
+        ref="messagePanel"
+        class="message-float-shell"
+        :class="{ mobile: isMobile }"
+      >
+        <div class="message-float-card">
+          <div class="float-head">
+            <div class="head-title">
+              <i class="fas fa-bell"></i>
+              <span>{{ messagePanelTitle }}</span>
+            </div>
+            <button class="head-close" @click="messagePanelVisible = false" aria-label="关闭消息浮窗">×</button>
+          </div>
+          <div class="message-panel" v-loading="messagePanelLoading">
+            <div v-if="messagePanelList.length">
+              <div
+                v-for="item in messagePanelList"
+                :key="item.id"
+                class="message-panel-item"
+                :class="{ unread: !item.isRead }"
+              >
+                <div class="item-head">
+                  <span class="item-title">{{ item.title || (item.type === 'system' ? '系统消息' : '点赞通知') }}</span>
+                  <el-tag size="mini" :type="item.isRead ? 'info' : 'danger'" effect="plain">{{ item.isRead ? '已读' : '未读' }}</el-tag>
+                </div>
+                <div class="item-content">{{ getPanelMessageText(item) }}</div>
+                <div class="item-foot">
+                  <span class="item-time">{{ formatPanelTime(item.createTime) }}</span>
+                  <el-button
+                    v-if="!item.isRead"
+                    type="primary"
+                    size="mini"
+                    plain
+                    :loading="messageActionLoadingIds.includes(String(item.id))"
+                    @click="markPanelMessageRead(item.id)"
+                  >
+                    标记已读
+                  </el-button>
+                </div>
+              </div>
+            </div>
+            <el-empty v-else description="暂无消息"></el-empty>
+          </div>
+        </div>
+      </section>
+    </transition>
     <NoticeBar />
   </header>
 </template>
 
 <script>
-import { getThemeMode, setThemeMode, themeBus } from '@/utils/theme'
+import { themeBus } from '@/utils/theme'
 import NoticeBar from '@/components/NoticeBar/index.vue'
+import { getUnreadNotificationsCountApi, getNotificationsApi, markNotificationAsReadApi } from '@/api/message'
+import { formatTime } from '@/utils/time'
 
 export default {
   name: 'TheHeader',
@@ -149,7 +207,6 @@ export default {
   },
   data() {
     return {
-      theme: 'light',
       searchQuery: '',
       showSearchPanel: false,
       showMobileSearch: false,
@@ -161,7 +218,17 @@ export default {
       showMessageDropdown: false,
       showSearch: false,
       unreadCount: 0,
-      adminUrl: import.meta.env.VITE_APP_ADMIN_URL || 'http://localhost:3000'
+      unreadLikeCount: 0,
+      unreadSystemCount: 0,
+      messageCloseTimer: null,
+      showCalendarBadge: localStorage.getItem('calendar-reminder-dot') !== 'false',
+      adminUrl: import.meta.env.VITE_APP_ADMIN_URL || 'http://localhost:3000',
+      messagePanelVisible: false,
+      messagePanelType: 'system',
+      messagePanelLoading: false,
+      messagePanelList: [],
+      messageActionLoadingIds: [],
+      viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 1200
     }
   },
   computed: {
@@ -171,18 +238,127 @@ export default {
     hasUnread() {
       return this.$store.state.isUnread;
     },
-    joinDays() {
-      if (!this.$store.state.userInfo || !this.$store.state.userInfo.createTime) return 0;
-      const createTime = new Date(this.$store.state.userInfo.createTime).getTime();
-      const now = new Date().getTime();
-      const diffTime = Math.abs(now - createTime);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-      return diffDays;
+    messagePanelTitle() {
+      return this.messagePanelType === 'like' ? '点赞消息' : '系统消息'
+    },
+    isMobile() {
+      return this.viewportWidth <= 768
     }
   },
   methods: {
     handleReadMessage() {
       this.$store.commit('SET_UNREAD', false);
+      this.showMessageDropdown = false
+    },
+    handleCalendarReminderUpdate(status) {
+      this.showCalendarBadge = Boolean(status)
+      localStorage.setItem('calendar-reminder-dot', String(this.showCalendarBadge))
+    },
+    toggleCalendarPanel() {
+      themeBus.$emit('floating-calendar-toggle')
+    },
+    formatPanelTime(time) {
+      return formatTime(time)
+    },
+    getPanelMessageText(item) {
+      if (item.type === 'like') {
+        return item.articleTitle ? `有人点赞了你的评论：${item.articleTitle}` : (item.message || '有人点赞了你的评论')
+      }
+      return item.message || ''
+    },
+    async openMessagePanel(type = 'system') {
+      this.showMessageDropdown = false
+      this.messagePanelType = type
+      this.messagePanelVisible = true
+      await this.fetchMessagePanelList()
+    },
+    async fetchMessagePanelList() {
+      this.messagePanelLoading = true
+      try {
+        const { data } = await getNotificationsApi({
+          pageNum: 1,
+          pageSize: 20,
+          type: this.messagePanelType
+        })
+        this.messagePanelList = ((data && data.records) || []).map(item => ({
+          ...item,
+          isRead: Boolean(item.isRead)
+        }))
+      } catch (error) {
+        this.messagePanelList = []
+        this.$message.error('消息加载失败，请稍后重试')
+      } finally {
+        this.messagePanelLoading = false
+      }
+    },
+    async markPanelMessageRead(id) {
+      const key = String(id)
+      if (this.messageActionLoadingIds.includes(key)) return
+      this.messageActionLoadingIds.push(key)
+      try {
+        await markNotificationAsReadApi(id)
+        this.messagePanelList = this.messagePanelList.map(item =>
+          String(item.id) === key ? { ...item, isRead: true } : item
+        )
+        await this.fetchUnreadCount()
+      } catch (error) {
+        this.$message.error('标记已读失败')
+      } finally {
+        this.messageActionLoadingIds = this.messageActionLoadingIds.filter(item => item !== key)
+      }
+    },
+    async fetchUnreadCount() {
+      if (!this.isLoggedIn) {
+        this.unreadCount = 0
+        this.unreadLikeCount = 0
+        this.unreadSystemCount = 0
+        return
+      }
+      try {
+        const { data } = await getUnreadNotificationsCountApi()
+        this.unreadLikeCount = data?.like?.num || 0
+        this.unreadSystemCount = data?.system?.num || 0
+        this.unreadCount = this.unreadLikeCount + this.unreadSystemCount
+        this.$store.commit('SET_UNREAD', this.unreadCount > 0)
+      } catch (error) {
+        this.unreadCount = 0
+      }
+    },
+    toggleMessageDropdown() {
+      this.cancelMessageAutoClose()
+      this.showMessageDropdown = !this.showMessageDropdown
+      this.fetchUnreadCount()
+    },
+    handleMessageMouseLeave() {
+      this.cancelMessageAutoClose()
+      this.messageCloseTimer = window.setTimeout(() => {
+        this.showMessageDropdown = false
+      }, 180)
+    },
+    cancelMessageAutoClose() {
+      if (this.messageCloseTimer) {
+        window.clearTimeout(this.messageCloseTimer)
+        this.messageCloseTimer = null
+      }
+    },
+    handleDocumentClick(e) {
+      const userSection = this.$el.querySelector('.user-section')
+      const messageSection = this.$el.querySelector('.message-btn-wrapper')
+      const messagePanel = this.$refs.messagePanel
+      const clickedInPanel = Boolean(messagePanel && messagePanel.contains(e.target))
+      const clickedInMessageTrigger = Boolean(messageSection && messageSection.contains(e.target))
+      if (userSection && !userSection.contains(e.target)) {
+        this.showDropdown = false
+      }
+      if (!clickedInMessageTrigger && !clickedInPanel) {
+        this.showMessageDropdown = false
+      }
+      if (this.messagePanelVisible && !clickedInPanel && !clickedInMessageTrigger) {
+        this.messagePanelVisible = false
+      }
+    },
+    handleResize() {
+      this.viewportWidth = window.innerWidth
     },
     handleOpenMobileMenu() {
       this.$store.commit('SET_MOBILE_MENU_VISIBLE', true)
@@ -204,30 +380,22 @@ export default {
     handleScroll() {
       const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop
       this.isScrolled = currentScrollTop > 20
-    },
-    toggleTheme() {
-      this.theme = this.theme === 'light' ? 'dark' : 'light'
-      setThemeMode(this.theme)
     }
   },
   mounted() {
-    this.theme = getThemeMode()
-    // 监听主题变化
-    themeBus.$on('theme-change', (mode) => {
-      this.theme = mode
-    })
+    this.fetchUnreadCount()
+    themeBus.$on('calendar-reminder-update', this.handleCalendarReminderUpdate)
     
     window.addEventListener('scroll', this.handleScroll)
-    document.addEventListener('click', (e) => {
-      const userSection = this.$el.querySelector('.user-section')
-      if (userSection && !userSection.contains(e.target)) {
-        this.showDropdown = false
-      }
-    })
+    document.addEventListener('click', this.handleDocumentClick)
+    window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.handleScroll)
-    themeBus.$off('theme-change')
+    document.removeEventListener('click', this.handleDocumentClick)
+    window.removeEventListener('resize', this.handleResize)
+    themeBus.$off('calendar-reminder-update', this.handleCalendarReminderUpdate)
+    this.cancelMessageAutoClose()
   }
 }
 </script>
@@ -461,7 +629,7 @@ export default {
     }
   }
 
-  .search-btn, .theme-btn {
+  .search-btn, .calendar-toggle-btn {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -479,17 +647,34 @@ export default {
     }
   }
 
-  .theme-btn {
-    padding: 8px; // 圆形按钮
+  .calendar-toggle-btn {
+    position: relative;
+    padding: 8px;
     border-radius: 50%;
     width: 32px;
     height: 32px;
     justify-content: center;
   }
 
+  .calendar-icon {
+    display: block;
+  }
+
+  .calendar-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff4d4f;
+  }
+
 .message-btn {
     position: relative;
     padding: 8px;
+    border: none;
+    background: transparent;
     color: var(--text-secondary);
     transition: color 0.3s;
     cursor: pointer;
@@ -500,12 +685,17 @@ export default {
 
     .message-count {
       position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 8px;
-      height: 8px;
+      top: -2px;
+      right: -6px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
       background: #ef4444;
-      border-radius: 50%;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 11px;
+      line-height: 16px;
+      text-align: center;
     }
   }
 
@@ -523,6 +713,7 @@ export default {
       border: 1px solid rgba(var(--border-color-rgb), 0.1);
       z-index: 1000;
       overflow: hidden;
+      transform-origin: top right;
 
       .dropdown-header {
         padding: 12px 16px;
@@ -538,6 +729,13 @@ export default {
 
       .dropdown-content {
         padding: 8px;
+
+        .message-empty {
+          text-align: center;
+          font-size: 12px;
+          color: var(--text-secondary);
+          padding: 14px 10px;
+        }
 
         .message-item {
           display: flex;
@@ -591,25 +789,132 @@ export default {
           }
         }
 
-        .join-time-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px;
-          color: var(--text-secondary);
-          font-size: 13px;
-          justify-content: center;
-          background: rgba(var(--border-color-rgb), 0.05);
-          border-radius: 8px;
-          margin-top: 8px;
-
-          i {
-            color: $primary;
-          }
-        }
       }
     }
   }
+}
+
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.dropdown-fade-enter,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+.message-panel-fade-enter-active,
+.message-panel-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.message-panel-fade-enter,
+.message-panel-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+.message-float-shell {
+  position: fixed;
+  top: 92px;
+  right: 24px;
+  z-index: 1900;
+  width: min(360px, calc(100vw - 24px));
+}
+
+.message-float-card {
+  border-radius: 14px;
+  border: 1px solid rgba(var(--border-color-rgb), 0.25);
+  background: rgba(var(--surface-rgb), 0.97);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.float-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(var(--border-color-rgb), 0.18);
+  background: linear-gradient(to right, rgba(var(--primary-rgb), 0.1), transparent);
+}
+
+.head-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.head-close {
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(var(--border-color-rgb), 0.6);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.message-panel {
+  max-height: min(56vh, 430px);
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.message-panel-item {
+  border: 1px solid rgba(var(--border-color-rgb), 0.2);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--surface);
+}
+
+.message-panel-item.unread {
+  border-color: rgba(var(--primary-rgb), 0.45);
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+.item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.item-content {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.item-foot {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.item-time {
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .user-info {
@@ -642,10 +947,29 @@ export default {
   }
 
   .avatar {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
     cursor: pointer;
     border: 2px solid transparent;
     border-radius: 50%;
     transition: all 0.3s;
+
+    :deep(.el-avatar) {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+    }
+
+    :deep(.el-avatar > img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
     
     &:hover {
       border-color: $primary;
@@ -741,6 +1065,19 @@ export default {
   
   .search-btn {
     display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .message-float-shell {
+    right: 12px;
+    top: auto;
+    bottom: 12px;
+    width: min(360px, calc(100vw - 24px));
+  }
+
+  .message-panel {
+    max-height: min(52vh, 380px);
   }
 }
 </style>

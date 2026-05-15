@@ -7,6 +7,7 @@
     <router-view class="main-container" />
     <TheFooter />
     <FloatingButtons />
+    <GlobalCheckInCalendarHost />
     <div class="cursor-container"></div>
   </div>
 </template>
@@ -16,6 +17,7 @@ import TheHeader from '@/layout/Header/index.vue'
 import TheFooter from '@/layout/Footer/index.vue'
 import DynamicBackground from '@/components/DynamicBackground/index.vue'
 import FloatingButtons from '@/components/common/FloatingButtons.vue'
+import GlobalCheckInCalendarHost from '@/components/GlobalCheckInCalendarHost.vue'
 import { getWebConfigApi, reportApi,getNoticeApi } from '@/api/site'
 import { mapActions } from 'vuex'
 import { initTheme } from '@/utils/theme'
@@ -30,6 +32,7 @@ export default {
     TheFooter,
     DynamicBackground,
     FloatingButtons,
+    GlobalCheckInCalendarHost,
     SearchDialog,
     MobileMenu,
   },
@@ -119,4 +122,5 @@ export default {
         opacity: 0;
     }
 }
+
 </style> 

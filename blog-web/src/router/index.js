@@ -109,15 +109,12 @@ const routes = [
                 }
               },
               {
-                path: '/editor',
-                name: 'Editor',
-                component: () => import(/* webpackPrefetch: true */ '@/views/editor/index.vue'),
-                meta: {
-                  title: '写文章',
-                  icon: 'fas fa-edit',
-                  requireAuth: true,
-                  hidden: true
-                }
+                path: '/profile',
+                redirect: '/user/profile'
+              },
+              {
+                path: '/user',
+                redirect: '/user/profile'
               },
               {
                 path: '/login',
@@ -130,7 +127,7 @@ const routes = [
                 }
               },
               {
-                path: '/:pathMatch(.*)*',
+                path: '*',
                 name: 'NotFound',
                 component: NotFound,
                 meta: {
@@ -142,8 +139,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: 'history',
-  base: '/',
+  mode: 'hash',
   routes,
   scrollBehavior(to, from, savedPosition) {
     return { x: 0, y: 0 }

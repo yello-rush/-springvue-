@@ -1,5 +1,31 @@
 <template>
     <div class="app-container">
+      <el-card v-permission="['sys:message:send']" class="box-card" style="margin-bottom: 16px;">
+        <template #header>
+          <div class="card-header">
+            <span>系统消息推送</span>
+          </div>
+        </template>
+        <el-form :model="systemForm" label-width="88px" inline>
+          <el-form-item label="消息标题">
+            <el-input v-model="systemForm.title" placeholder="请输入系统消息标题" style="width: 260px;" maxlength="60" show-word-limit />
+          </el-form-item>
+          <el-form-item label="跳转链接">
+            <el-input v-model="systemForm.link" placeholder="可选，例：https://xxx.com" style="width: 320px;" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="sendLoading" @click="handleSendSystemMessage">向全体用户发送</el-button>
+          </el-form-item>
+        </el-form>
+        <el-input
+          v-model="systemForm.content"
+          type="textarea"
+          :rows="3"
+          maxlength="500"
+          show-word-limit
+          placeholder="请输入系统消息内容"
+        />
+      </el-card>
  
   
       <!-- 操作按钮区域 -->
@@ -73,7 +99,8 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import {
     getMessageListApi,
-    deleteMessageApi
+    deleteMessageApi,
+    sendSystemMessageApi
   } from '@/api/message/message'
   
   // 查询参数
@@ -84,8 +111,14 @@
   })
   
   const loading = ref(false)
+  const sendLoading = ref(false)
   const total = ref(0)
   const messageList = ref([])
+  const systemForm = reactive({
+    title: '',
+    content: '',
+    link: ''
+  })
   
   // 选中项数组
   const selectedIds = ref<string[]>([])
@@ -140,6 +173,28 @@
       } catch (error) {
       }
     })
+  }
+
+  const handleSendSystemMessage = async () => {
+    if (!systemForm.title.trim()) {
+      ElMessage.warning('请输入消息标题')
+      return
+    }
+    if (!systemForm.content.trim()) {
+      ElMessage.warning('请输入消息内容')
+      return
+    }
+    sendLoading.value = true
+    try {
+      await sendSystemMessageApi(systemForm)
+      ElMessage.success('系统消息已发送至全体用户')
+      systemForm.title = ''
+      systemForm.content = ''
+      systemForm.link = ''
+    } catch (error) {
+    } finally {
+      sendLoading.value = false
+    }
   }
 
   // 搜索

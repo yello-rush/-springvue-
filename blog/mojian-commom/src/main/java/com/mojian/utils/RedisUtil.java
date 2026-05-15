@@ -26,6 +26,8 @@ public class RedisUtil {
     
     // 本地一级缓存，减少数据库压力
     private final Map<String, Object> localCache = new ConcurrentHashMap<>();
+    // 记录本地缓存过期时间，-1 表示永不过期
+    private final Map<String, Long> localExpireCache = new ConcurrentHashMap<>();
 
     private static final String TABLE = "sys_cache";
 
@@ -51,6 +53,7 @@ public class RedisUtil {
                      "ON DUPLICATE KEY UPDATE cache_value = ?, expire_time = ?";
         jdbcTemplate.update(sql, key, jsonValue, expireTime, jsonValue, expireTime);
         localCache.put(key, value);
+        localExpireCache.put(key, expireTime);
     }
 
     /**
@@ -58,7 +61,13 @@ public class RedisUtil {
      */
     public Object get(String key) {
         if (localCache.containsKey(key)) {
-            return localCache.get(key);
+            Long localExpireTime = localExpireCache.getOrDefault(key, -1L);
+            if (localExpireTime == -1 || System.currentTimeMillis() <= localExpireTime) {
+                return localCache.get(key);
+            }
+            // 本地缓存已过期，清理后继续查库，避免返回脏数据
+            localCache.remove(key);
+            localExpireCache.remove(key);
         }
         try {
             String sql = "SELECT cache_value, expire_time FROM " + TABLE + " WHERE cache_key = ?";
@@ -74,6 +83,7 @@ public class RedisUtil {
             Object value = JSON.parse(jsonValue, com.alibaba.fastjson.parser.Feature.SupportAutoType); 
             if (value != null) {
                 localCache.put(key, value);
+                localExpireCache.put(key, expireTime);
             }
             return value;
         } catch (EmptyResultDataAccessException e) {
@@ -86,6 +96,7 @@ public class RedisUtil {
      */
     public Boolean delete(String key) {
         localCache.remove(key);
+        localExpireCache.remove(key);
         String sql = "DELETE FROM " + TABLE + " WHERE cache_key = ?";
         return jdbcTemplate.update(sql, key) > 0;
     }
@@ -100,6 +111,7 @@ public class RedisUtil {
     public Long delete(Collection<String> keys) {
         if (keys == null || keys.isEmpty()) return 0L;
         keys.forEach(localCache::remove);
+        keys.forEach(localExpireCache::remove);
         
         String inSql = String.join(",", Collections.nCopies(keys.size(), "?"));
         String sql = "DELETE FROM " + TABLE + " WHERE cache_key IN (" + inSql + ")";
@@ -113,6 +125,9 @@ public class RedisUtil {
         long expireTime = System.currentTimeMillis() + unit.toMillis(timeout);
         String sql = "UPDATE " + TABLE + " SET expire_time = ? WHERE cache_key = ?";
         jdbcTemplate.update(sql, expireTime, key);
+        if (localCache.containsKey(key)) {
+            localExpireCache.put(key, expireTime);
+        }
     }
 
     /**

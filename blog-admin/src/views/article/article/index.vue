@@ -69,24 +69,6 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="是否推荐" align="center">
-          <template #default="{ row }">
-            <span v-for="item in yesNoOptions" :key="item.value">
-              <el-tag :type="item.style" v-if="row.isRecommend === Number(item.value)">
-                {{ item.label }}
-              </el-tag>
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="是否置顶" align="center">
-          <template #default="{ row }">
-            <span v-for="item in yesNoOptions" :key="item.value">
-              <el-tag :type="item.style" v-if="row.isStick === Number(item.value)">
-                {{ item.label }}
-              </el-tag>
-            </span>
-          </template>
-        </el-table-column>
         <el-table-column label="阅读量" align="center" prop="quantity"/>
         <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
         <el-table-column label="操作" align="center" width="280" fixed="right">
@@ -103,7 +85,7 @@
       <!-- 分页组件 -->
       <div class="pagination-container">
         <el-pagination v-model:current-page="queryParams.pageNum" v-model:page-size="queryParams.pageSize"
-          :page-sizes="[10, 20, 30, 50]" :total="total" :background="true"
+          :page-sizes="[5, 10, 20, 30]" :total="total" :background="true"
           layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
           @current-change="handleCurrentChange" />
       </div>
@@ -266,32 +248,12 @@
         </el-row>
 
         <el-row :gutter="20" class="mb-20">
-          <el-col :span="8">
-            <el-form-item label="阅读方式" prop="readType">
-              <el-select v-model="form.readType" placeholder="请选择阅读方式">
-                <el-option label="免费" :value="1" />
-                <el-option label="会员" :value="2" />
-                <el-option label="付费" :value="3" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item label="关键词" prop="keywords">
               <el-input v-model="form.keywords" placeholder="请输入关键词" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-
-        <el-row :gutter="20" class="mb-20">
-          <el-col :span="6">
-            <el-form-item label="是否置顶" prop="isStick">
-              <el-switch style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" v-model="form.isStick"
-                :active-value="1" :inactive-value="0" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
+          <el-col :span="12">
             <el-form-item label="是否发布" prop="status">
               <el-select v-model="form.status" placeholder="请选择文章状态">
                 <el-option v-for="item in statusOptions" :key="item.value" :value="item.value"
@@ -299,16 +261,13 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
+        </el-row>
+
+        <el-row :gutter="20" class="mb-20">
+          <el-col :span="12">
             <el-form-item label="首页轮播" prop="isCarousel">
               <el-switch style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" v-model="form.isCarousel"
                 :active-value="1" :inactive-value="0" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item label="是否推荐" prop="isRecommend">
-              <el-switch style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-                v-model="form.isRecommend" :active-value="1" :inactive-value="0" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -393,7 +352,7 @@ const tagOptions = ref<any>([])
 // 查询参数
 const queryParams = reactive({
   pageNum: 1,
-  pageSize: 10,
+  pageSize: 5,
   title: '',
   categoryId: undefined,
   tagId: undefined,
@@ -446,11 +405,8 @@ const form = reactive<any>({
   tags: [],
   content: '',
   contentMd: '',
-  readType: 1,
-  isStick: 0,
   status: 1,
   isCarousel: 0,
-  isRecommend: 0,
   keywords: ''
 })
 
@@ -492,9 +448,6 @@ const rules = reactive<FormRules>({
   summary: [
     { required: true, message: '请输入文章简介', trigger: 'blur' },
     { max: 500, message: '简介最多500个字符', trigger: 'blur' }
-  ],
-  readType: [
-    { required: true, message: '请选择阅读方式', trigger: 'change' }
   ],
   tags: [
     { required: true, message: '请选择文章标签', trigger: 'change' }
@@ -678,10 +631,8 @@ const clearForm = () => {
   form.tags = []
   form.content = ''
   form.contentMd = ''
-  form.isStick = 0
   form.status = 'publish'
   form.isCarousel = 0
-  form.isRecommend = 0
   form.keywords = ''
 }
 

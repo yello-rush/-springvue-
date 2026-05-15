@@ -72,49 +72,10 @@ export function forgotPasswordApi(data) {
     })
   }
 
-/**
- * 获取微信登录验证码
- */
-export function getWechatLoginCodeApi() {
-  return request({
-    url: `/api/wechat/getCode`,
-    method: 'get',
-  })
-} 
-
-/**
- * 获取微信登录状态
- */
-export function getWechatIsLoginApi(code) {
-  return request({
-    url: `/api/wechat/isLogin/${code}`,
-    method: 'get',
-  })
-} 
-
-/**
- * 获取第三方授权地址
- */
-export function getAuthRenderApi(source) {
-  return request({
-    url: `/api/auth/render/${source}`,
-    method: 'get',
-  })
-} 
-
-
 // 获取验证码
 export function getCaptchaApi() {
   return request({
     url: '/auth/getCaptcha',
-    method: 'get'
-  })
-}
-
-// 获取验证码开关
-export function getCaptchaSwitchApi() {
-  return request({
-    url: '/sys/config/getConfigByKey/slider_verify_switch',
     method: 'get'
   })
 }
