@@ -363,6 +363,7 @@ export default {
         
         this.article = {
           ...res.data,
+          content: res.data.contentMd || res.data.content,
           quantity: heatData.quantity || res.data.quantity,
           likeNum: heatData.likeNum || res.data.likeNum,
           favoriteNum: heatData.favoriteNum || res.data.favoriteNum,

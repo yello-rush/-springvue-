@@ -148,6 +148,7 @@
             a.content_md,
             a.content,
             a.quantity,
+            a.read_type,
             a.create_time,
             a.update_time,
             a.first_accessed_time,
