@@ -15,12 +15,28 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mojian.entity.SysUser;
+import com.mojian.mapper.SysUserMapper;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class HomeController {
 
     private final HomeService homeService;
+    private final SysUserMapper sysUserMapper;
+
+    @GetMapping("/adminIsOnline")
+    @ApiOperation(value = "检查管理员是否在线")
+    public Result<Boolean> adminIsOnline() {
+        SysUser adminUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, "admin").last("limit 1"));
+        if (adminUser != null) {
+            return Result.success(StpUtil.isLogin(adminUser.getId()));
+        }
+        return Result.success(false);
+    }
 
     @GetMapping("/webConfig")
     @ApiOperation(value = "获取网站配置")

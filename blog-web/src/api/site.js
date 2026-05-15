@@ -21,3 +21,10 @@ export function reportApi() {
         method: 'get'
     })
 }
+
+export function checkAdminOnlineApi() {
+    return request({
+        url: '/api/adminIsOnline',
+        method: 'get'
+    })
+}

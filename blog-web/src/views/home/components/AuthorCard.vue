@@ -77,6 +77,8 @@
 </template>
 
 <script>
+import { checkAdminOnlineApi } from '@/api/site'
+
 export default {
   name: 'AuthorCard',
   data() {
@@ -84,6 +86,7 @@ export default {
       isAboutMeExpanded: false,
       dialogVisible: false,
       currentSocial: {},
+      adminOnline: false,
       socialLinks: [
         {
           type: 'wechat',
@@ -105,11 +108,23 @@ export default {
       return this.$store.state.webSiteInfo || {};
     },
     isBloggerOnline() {
-      const userInfo = this.$store.state.userInfo;
-      return userInfo && userInfo.username === 'rush';
+      return this.adminOnline;
     }
   },
+  created() {
+    this.checkOnlineStatus();
+  },
   methods: {
+    async checkOnlineStatus() {
+      try {
+        const res = await checkAdminOnlineApi();
+        if (res.code === 200) {
+          this.adminOnline = res.data;
+        }
+      } catch (e) {
+        console.error('获取博主在线状态失败', e);
+      }
+    },
     handleSocialClick(item) {
       this.currentSocial = item;
       this.dialogVisible = true;
