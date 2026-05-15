@@ -81,11 +81,11 @@
                       <span class="desc">未读系统通知（{{ unreadSystemCount }}）</span>
                     </div>
                   </div>
-                  <div v-if="unreadCount === 0" class="message-item" @click="openMessagePanel('system')">
-                    <i class="fas fa-bell text-primary"></i>
+                  <div v-if="unreadCount === 0" class="message-item" @click="openMessagePanel('all')">
+                    <i class="fas fa-history text-primary"></i>
                     <div class="message-info">
-                      <span class="title">查看消息</span>
-                      <span class="desc">当前无未读消息，点击查看历史系统通知</span>
+                      <span class="title">历史消息</span>
+                      <span class="desc">当前无未读消息，点击查看历史消息记录</span>
                     </div>
                   </div>
                 </template>
@@ -155,7 +155,12 @@
               <i class="fas fa-bell"></i>
               <span>{{ messagePanelTitle }}</span>
             </div>
-            <button class="head-close" @click="messagePanelVisible = false" aria-label="关闭消息浮窗">×</button>
+            <div class="head-actions">
+              <button class="head-action-btn" title="全部已读" @click="markAllAsRead" v-if="messagePanelList.some(item => !item.isRead)">
+                <i class="fas fa-check-double"></i>
+              </button>
+              <button class="head-close" @click="messagePanelVisible = false" aria-label="关闭消息浮窗">×</button>
+            </div>
           </div>
           <div class="message-panel" v-loading="messagePanelLoading">
             <div v-if="messagePanelList.length">
@@ -182,6 +187,15 @@
                   >
                     标记已读
                   </el-button>
+                  <el-button
+                    v-else
+                    type="danger"
+                    size="mini"
+                    plain
+                    @click="deletePanelMessage(item.id)"
+                  >
+                    删除记录
+                  </el-button>
                 </div>
               </div>
             </div>
@@ -197,7 +211,7 @@
 <script>
 import { themeBus } from '@/utils/theme'
 import NoticeBar from '@/components/NoticeBar/index.vue'
-import { getUnreadNotificationsCountApi, getNotificationsApi, markNotificationAsReadApi } from '@/api/message'
+import { getUnreadNotificationsCountApi, getNotificationsApi, markNotificationAsReadApi, deleteNotificationApi, markAllNotificationsAsReadApi } from '@/api/message'
 import { formatTime } from '@/utils/time'
 
 export default {
@@ -239,7 +253,9 @@ export default {
       return this.$store.state.isUnread;
     },
     messagePanelTitle() {
-      return this.messagePanelType === 'like' ? '点赞消息' : '系统消息'
+      if (this.messagePanelType === 'like') return '点赞消息'
+      if (this.messagePanelType === 'all') return '历史消息'
+      return '系统消息'
     },
     isMobile() {
       return this.viewportWidth <= 768
@@ -278,7 +294,7 @@ export default {
         const { data } = await getNotificationsApi({
           pageNum: 1,
           pageSize: 20,
-          type: this.messagePanelType
+          type: this.messagePanelType === 'all' ? '' : this.messagePanelType
         })
         this.messagePanelList = ((data && data.records) || []).map(item => ({
           ...item,
@@ -305,6 +321,25 @@ export default {
         this.$message.error('标记已读失败')
       } finally {
         this.messageActionLoadingIds = this.messageActionLoadingIds.filter(item => item !== key)
+      }
+    },
+    async markAllAsRead() {
+      try {
+        await markAllNotificationsAsReadApi()
+        this.messagePanelList = this.messagePanelList.map(item => ({ ...item, isRead: true }))
+        this.$message.success('已全部标记为已读')
+        this.fetchUnreadCount()
+      } catch (error) {
+        this.$message.error('操作失败')
+      }
+    },
+    async deletePanelMessage(id) {
+      try {
+        await deleteNotificationApi(id)
+        this.messagePanelList = this.messagePanelList.filter(item => String(item.id) !== String(id))
+        this.$message.success('删除成功')
+      } catch (error) {
+        this.$message.error('删除失败')
       }
     },
     async fetchUnreadCount() {
@@ -851,6 +886,28 @@ export default {
   color: var(--text-primary);
 }
 
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.head-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  
+  &:hover {
+    color: $primary;
+    background: var(--hover-bg);
+  }
+}
+
 .head-close {
   width: 24px;
   height: 24px;
@@ -861,6 +918,12 @@ export default {
   cursor: pointer;
   line-height: 1;
   padding: 0;
+  transition: all 0.3s;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--hover-bg);
+  }
 }
 
 .message-panel {

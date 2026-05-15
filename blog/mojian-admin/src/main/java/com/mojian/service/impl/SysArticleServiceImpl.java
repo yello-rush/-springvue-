@@ -21,6 +21,7 @@ import com.mojian.utils.AiUtil;
 import com.mojian.utils.PageUtil;
 import com.mojian.vo.article.ArticleListVo;
 import com.mojian.vo.article.SysArticleDetailVo;
+import com.mojian.utils.NotificationsUtil;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
     private final AiUtil aiUtil;
     private final SysCategoryMapper sysCategoryMapper;
     private final SysArticleHistoryMapper sysArticleHistoryMapper;
+    private final NotificationsUtil notificationsUtil;
 
     @Override
     public IPage<ArticleListVo> selectPage(ArticleQueryDto articleQueryDto) {
@@ -88,6 +90,11 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
         // 记录初始版本
         recordHistory(obj, "创建文章");
 
+        // 发送通知
+        if ("publish".equals(obj.getStatus())) {
+            notificationsUtil.publishNewArticle(obj);
+        }
+
         ThreadUtil.execAsync(() -> {
             String res = aiUtil.send(obj.getContent() + "请提供一段简短的介绍描述该文章的内容");
             if (StringUtils.isNotBlank(res)) {
@@ -125,6 +132,11 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
         
         // 记录历史版本
         recordHistory(obj, "更新文章");
+
+        // 发送更新通知
+        if ("publish".equals(obj.getStatus())) {
+            notificationsUtil.publishArticleUpdate(obj);
+        }
 
         return true;
     }

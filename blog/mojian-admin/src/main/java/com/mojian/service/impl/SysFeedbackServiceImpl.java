@@ -19,12 +19,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 
+import com.mojian.utils.NotificationsUtil;
+
 /**
  * 反馈表 服务实现类
  */
 @Service
 @RequiredArgsConstructor
 public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFeedback> implements SysFeedbackService {
+
+    private final JdbcTemplate jdbcTemplate;
+    private final NotificationsUtil notificationsUtil;
 
     /**
      * 查询反馈表分页列表
@@ -61,7 +66,16 @@ public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFe
         if (feedbackType != null) {
             sysFeedback.setFeedbackType(feedbackType);
         }
-        return updateById(sysFeedback);
+        boolean updated = updateById(sysFeedback);
+        
+        // 发送通知
+        if (updated && sysFeedback.getStatus() == 1) {
+            SysFeedback oldFeedback = getById(sysFeedback.getId());
+            if (oldFeedback != null && oldFeedback.getUserId() != null) {
+                notificationsUtil.publishFeedbackProcessed(oldFeedback.getUserId(), oldFeedback.getTitle());
+            }
+        }
+        return updated;
     }
 
     protected Long getCurrentUserId() {
@@ -85,8 +99,6 @@ public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFe
     protected Page<Object> buildPage() {
         return PageUtil.getPage();
     }
-
-    private final JdbcTemplate jdbcTemplate;
 
     private void ensureFeedbackTypeColumn() {
         Integer count = jdbcTemplate.queryForObject(

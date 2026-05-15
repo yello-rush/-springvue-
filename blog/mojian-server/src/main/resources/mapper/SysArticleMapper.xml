@@ -290,6 +290,12 @@
         ORDER BY a.create_time DESC
     </select>
 
+    <select id="getUsersByArticleCollect" resultType="java.lang.Integer">
+        SELECT user_id
+        FROM sys_article_collect
+        WHERE article_id = #{articleId} AND status = 1
+    </select>
+
     <insert id="recordCollectBehavior">
         INSERT INTO sys_article_collect_log(
             user_id,

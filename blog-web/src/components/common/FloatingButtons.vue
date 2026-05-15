@@ -14,12 +14,6 @@
       </button>
     </el-tooltip>
  
-    <el-tooltip content="背景设置" placement="left">
-      <button class="float-btn bg-setting-btn" @click="toggleBackgroundPanel" title="背景设置">
-        <i class="fas fa-cog"></i>
-      </button>
-    </el-tooltip>
-
     <el-tooltip content="切换主题" placement="left">
       <button class="float-btn theme-btn" @click="toggleTheme" title="切换主题">
         <i :class="['fas', isDarkMode ? 'fa-sun' : 'fa-moon']"></i>
@@ -139,9 +133,6 @@ export default {
       this.isDarkMode = !this.isDarkMode
       const mode = this.isDarkMode ? 'dark' : 'light'
       setThemeMode(mode)
-    },
-    toggleBackgroundPanel() {
-      themeBus.$emit('background-config-toggle')
     },
     scrollToTop() {
       window.scrollTo({

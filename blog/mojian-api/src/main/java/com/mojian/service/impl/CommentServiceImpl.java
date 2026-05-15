@@ -65,6 +65,21 @@ public class CommentServiceImpl implements CommentService {
         }
         sysComment.setLikeCount(sysComment.getLikeCount() == null ? 1 : sysComment.getLikeCount() + 1);
         sysCommentMapper.updateById(sysComment);
+
+        ThreadUtil.execAsync(() -> {
+            //发送点赞通知
+            SysNotifications notifications = SysNotifications.builder()
+                    .title("评论点赞通知")
+                    .message("你的评论被点赞了")
+                    .articleId(sysComment.getArticleId())
+                    .isRead(0)
+                    .type("like")
+                    .userId(sysComment.getUserId())
+                    .fromUserId(StpUtil.getLoginIdAsLong())
+                    .build();
+            notificationsUtil.publish(notifications);
+        });
+
         return true;
     }
 }

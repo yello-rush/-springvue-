@@ -106,6 +106,11 @@ public interface SysArticleMapper extends BaseMapper<SysArticle> {
                                @Param("requestUri") String requestUri,
                                @Param("clientIp") String clientIp);
 
+    /**
+     * 获取收藏了某篇文章的用户ID列表
+     */
+    List<Integer> getUsersByArticleCollect(@Param("articleId") Long articleId);
+
     void saveOrUpdateHistory(@Param("articleId")Long articleId,@Param("userId")int userId);
 
     @MapKey("name")

@@ -1,34 +1,10 @@
 <template>
   <div>
     <canvas ref="canvas" class="dynamic-background"></canvas>
-    
-    <!-- Configuration Panel -->
-    <div class="bg-config-panel" :class="{ 'is-open': panelOpen }">
-      <div class="panel-content">
-        <h4 style="margin-bottom: 15px; text-align: center;">背景特效设置</h4>
-        
-        <div class="config-item">
-          <label>动画强度: {{ localIntensity }}</label>
-          <input type="range" min="0.1" max="3" step="0.1" v-model.number="localIntensity">
-        </div>
-        
-        <div class="config-item">
-          <label>粒子密度: {{ localDensity }}</label>
-          <input type="range" min="20" max="200" step="10" v-model.number="localDensity">
-        </div>
-        
-        <div class="config-item">
-          <label>主题色</label>
-          <input type="color" v-model="localThemeColor">
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-import { themeBus } from '@/utils/theme'
-
 export default {
   name: 'DynamicBackground',
   props: {
@@ -44,7 +20,6 @@ export default {
       animationFrameId: null,
       resizeTimeout: null,
       
-      panelOpen: false,
       localIntensity: this.intensity,
       localDensity: this.density,
       localThemeColor: this.themeColor
@@ -57,13 +32,11 @@ export default {
     window.addEventListener('resize', this.handleResize);
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mouseout', this.handleMouseOut);
-    themeBus.$on('background-config-toggle', this.togglePanel);
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mouseout', this.handleMouseOut);
-    themeBus.$off('background-config-toggle', this.togglePanel);
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
@@ -74,9 +47,6 @@ export default {
     }
   },
   methods: {
-    togglePanel() {
-      this.panelOpen = !this.panelOpen;
-    },
     initCanvas() {
       const canvas = this.$refs.canvas;
       this.ctx = canvas.getContext('2d');
@@ -207,62 +177,5 @@ export default {
   pointer-events: none;
   background: transparent;
 }
-
-.bg-config-panel {
-  position: fixed;
-  right: 24px;
-  bottom: 120px;
-  transform: translateX(calc(100% + 24px));
-  width: 260px;
-  background: var(--card-bg);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  transition: all 360ms cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.bg-config-panel.is-open {
-  transform: translateX(0);
-}
-
-.panel-content {
-  padding: 20px;
-  color: var(--text-primary);
-}
-
-.config-item {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.config-item label {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.config-item input[type="range"] {
-  width: 100%;
-  accent-color: var(--primary);
-}
-
-.config-item input[type="color"] {
-  width: 100%;
-  height: 35px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .bg-config-panel {
-    right: 14px;
-    bottom: 100px;
-    width: min(260px, calc(100vw - 28px));
-  }
-}
 </style>
+
