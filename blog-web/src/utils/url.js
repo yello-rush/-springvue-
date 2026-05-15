@@ -29,5 +29,10 @@ export function getOptimizedImageUrl(input, options = {}) {
   if (/qiniucdn|clouddn|qiniu/i.test(url)) {
     return `${url}${joiner}imageView2/2/w/${width}/q/${quality}/format/webp`
   }
+  // Unsplash and common free image hosts
+  if (/unsplash\.com|images\.unsplash\.com|picsum\.photos|pixabay\.com/i.test(url)) {
+    const params = [`w=${width}`, `q=${quality}`, 'auto=format', 'fit=crop']
+    return `${url}${joiner}${params.join('&')}`
+  }
   return url
 }

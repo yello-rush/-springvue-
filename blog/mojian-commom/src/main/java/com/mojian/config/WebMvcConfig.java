@@ -8,8 +8,12 @@ import com.mojian.mapper.SysFileOssMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+import org.springframework.web.servlet.resource.VersionResourceResolver;
+
+import java.util.concurrent.TimeUnit;
 import java.util.List;
 
 /**
@@ -42,7 +46,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
             }
             //本地存储升级版
             registry.addResourceHandler(sysFileOss.getPathPatterns())
-                    .addResourceLocations("file:" + storagePath);
+                    .addResourceLocations("file:" + storagePath)
+                    .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic())
+                    .resourceChain(true)
+                    .addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
         }
     }
 
