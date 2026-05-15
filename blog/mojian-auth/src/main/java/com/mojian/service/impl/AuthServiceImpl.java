@@ -46,11 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserMapper sysUserMapper;
 
     private final String[] avatarList = {
-            "https://api.dicebear.com/6.x/pixel-art/svg?seed=Raccoon",
-            "https://api.dicebear.com/6.x/pixel-art/svg?seed=Kitty",
-            "https://api.dicebear.com/6.x/pixel-art/svg?seed=Puppy",
-            "https://api.dicebear.com/6.x/pixel-art/svg?seed=Bunny",
-            "https://api.dicebear.com/6.x/pixel-art/svg?seed=Fox"
+            "/visitor.png"
     };
     private final SysRoleMapper sysRoleMapper;
 
