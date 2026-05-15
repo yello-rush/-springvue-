@@ -2,7 +2,7 @@
     <div class="sidebar-container" :class="settingsStore.sidebarStyle">
       <el-tooltip content="返回前台首页" placement="right" :disabled="!isCollapse">
         <a href="http://localhost:80" target="_blank" v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }" style="text-decoration: none;" :title="isCollapse ? '' : '返回前台首页'" aria-label="返回前台首页" role="button">
-          <img src="/avatar/blogger.jpg" alt="logo" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
+          <img src="@/assets/logo.png" alt="logo" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: cover;" @error="$event.target.src='/favicon.ico'" />
           <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">习习中的博客</span>
         </a>
       </el-tooltip>
