@@ -80,7 +80,7 @@ public interface SysArticleMapper extends BaseMapper<SysArticle> {
      * @param id
      */
     void incrementQuantity(@Param("id") Long id);
-}
+
     Integer getCollectStatus(@Param("articleId") Long articleId, @Param("userId") int userId);
 
     /**
