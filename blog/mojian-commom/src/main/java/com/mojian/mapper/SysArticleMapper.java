@@ -75,6 +75,12 @@ public interface SysArticleMapper extends BaseMapper<SysArticle> {
 
     Boolean getUserIsCollect(@Param("articleId") Long articleId, @Param("userId") int userId);
 
+    /**
+     * 增加文章阅读量
+     * @param id
+     */
+    void incrementQuantity(@Param("id") Long id);
+}
     Integer getCollectStatus(@Param("articleId") Long articleId, @Param("userId") int userId);
 
     /**

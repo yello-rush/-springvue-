@@ -60,7 +60,7 @@
           <!-- 作者信息和元数据 -->
           <div class="article-info">
             <div class="author-info">
-              <img v-lazy="'/author.png'" alt="作者头像" class="author-avatar">
+              <img :src="article.avatar || '/visitor.png'" loading="lazy" alt="作者头像" class="author-avatar">
               <div class="author-meta">
                 <span class="author-name">习习中</span>
                 <div class="post-meta">
@@ -81,10 +81,6 @@
               <div class="stat-item">
                 <i class="far fa-eye"></i>
                 <span>{{ getViewCount(article) }} 阅读</span>
-              </div>
-              <div class="stat-item">
-                <i class="far fa-clock"></i>
-                <span>{{ getEstimatedReadTime(article) }} 分钟</span>
               </div>
               <div class="stat-item">
                 <i class="far fa-comment"></i>
@@ -364,7 +360,7 @@ export default {
         this.article = {
           ...res.data,
           content: res.data.contentMd || res.data.content,
-          quantity: heatData.quantity || res.data.quantity,
+          quantity: (res.data.quantity || 0) + 1, // Visual +1 locally
           likeNum: heatData.likeNum || res.data.likeNum,
           favoriteNum: heatData.favoriteNum || res.data.favoriteNum,
           commentNum: heatData.commentNum || res.data.commentNum,

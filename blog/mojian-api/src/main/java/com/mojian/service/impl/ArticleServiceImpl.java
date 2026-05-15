@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import com.mojian.common.Constants;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -127,18 +128,7 @@ public class ArticleServiceImpl implements ArticleService {
             //添加阅读量
             String ip = IpUtil.getIp();
             ThreadUtil.execAsync(() -> {
-                Map<Object, Object> map = redisUtil.hGetAll(RedisConstants.ARTICLE_QUANTITY);
-                List<String> ipList = (List<String>) map.get(id.toString());
-                if (ipList != null) {
-                    if (!ipList.contains(ip)) {
-                        ipList.add(ip);
-                    }
-                } else {
-                    ipList = new ArrayList<>();
-                    ipList.add(ip);
-                }
-                map.put(id.toString(), ipList);
-                redisUtil.hSetAll(RedisConstants.ARTICLE_QUANTITY, map);
+                sysArticleMapper.incrementQuantity(id);
             });
             return detailVo;
         } catch (Exception e) {

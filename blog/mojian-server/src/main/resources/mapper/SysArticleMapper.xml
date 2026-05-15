@@ -89,6 +89,10 @@
         </foreach>
     </update>
 
+    <update id="incrementQuantity">
+        UPDATE sys_article SET quantity = quantity + 1 WHERE id = #{id}
+    </update>
+
 
     <delete id="unLike">
         DELETE FROM sys_article_like WHERE user_id = #{userId} AND article_id = #{articleId}
@@ -148,7 +152,6 @@
             a.content_md,
             a.content,
             a.quantity,
-            a.read_type,
             a.create_time,
             a.update_time,
             a.first_accessed_time,
