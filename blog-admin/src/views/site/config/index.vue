@@ -125,22 +125,7 @@
             </el-form-item>
           </el-tab-pane>
 
-          <!-- 网站设置 Tab -->
-          <el-tab-pane name="settings">
-            <template #label>
-              <el-icon>
-                <Tools />
-              </el-icon>
-              <span class="tab-label">网站设置</span>
-            </template>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="游客头像" prop="touristAvatar">
-                  <upload-image v-model="form.touristAvatar" :limit="1" />
-                </el-form-item>
-              </el-col>
-            </el-row>
-          </el-tab-pane>
+
         </el-tabs>
 
         <!-- 底部按钮 -->
@@ -203,7 +188,6 @@ const form = ref({
   qqGroup: '',
   wechat: '',
   email: '',
-  touristAvatar: '',
   bulletin: '',
   aboutMe: '',
 })

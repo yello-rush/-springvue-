@@ -5,7 +5,7 @@
     </div>
     <div class="card-header">
       <div class="author-avatar">
-        <el-avatar class="avatar" :src="webSiteInfo.authorAvatar || '/avatar/blogger.jpg'" :srcset="(webSiteInfo.authorAvatar || '/avatar/blogger@2x.jpg') + ' 2x, ' + (webSiteInfo.authorAvatar || '/avatar/blogger@3x.jpg') + ' 3x'" alt="作者头像" icon="el-icon-user-solid" />
+        <el-avatar class="avatar" :src="webSiteInfo.authorAvatar || '/avatar/blogger.jpg'" alt="作者头像" icon="el-icon-user-solid" />
       </div>
       <div class="status-badge" :class="{ offline: !isBloggerOnline }">
         <span>{{ isBloggerOnline ? '在线' : '离线' }}</span>

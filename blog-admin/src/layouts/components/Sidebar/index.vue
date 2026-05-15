@@ -2,8 +2,8 @@
     <div class="sidebar-container" :class="settingsStore.sidebarStyle">
       <el-tooltip content="返回前台首页" placement="right" :disabled="!isCollapse">
         <a href="http://localhost:80" target="_blank" v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }" style="text-decoration: none;" :title="isCollapse ? '' : '返回前台首页'" aria-label="返回前台首页" role="button">
-          <img src="@/assets/logo.png" alt="logo" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
-          <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">习习中的博客</span>
+          <img :src="siteLogo" alt="logo" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
+          <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">{{ siteName }}</span>
         </a>
       </el-tooltip>
       <el-scrollbar>
@@ -26,16 +26,29 @@
   </template>
   
   <script setup lang="ts">
-  import { computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { computed, ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
   import { usePermissionStore } from '@/store/modules/permission'
   import { useSettingsStore } from '@/store/modules/settings'
   import { Platform } from '@element-plus/icons-vue'
   import settings from '@/config/settings'
   import { isExternal } from '@/utils/validate'
-  import MenuItem from './MenuItem.vue'
-  
-  const route = useRoute()
+import MenuItem from './MenuItem.vue'
+import { getWebConfigApi } from '@/api/site/config'
+
+const siteLogo = ref('@/assets/logo.png')
+const siteName = ref('习习中的博客')
+
+onMounted(() => {
+  getWebConfigApi().then((res) => {
+    if (res.data) {
+      siteLogo.value = res.data.logo || siteLogo.value
+      siteName.value = res.data.name || siteName.value
+    }
+  })
+})
+
+const route = useRoute()
   const permissionStore = usePermissionStore()
   const settingsStore = useSettingsStore()
   const router = useRouter()
