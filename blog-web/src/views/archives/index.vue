@@ -3,7 +3,7 @@
     <div class="content-layout">
       <main class="main-content">
         <el-card class="content-card">
-          <div class="timeline">
+          <div class="timeline" v-if="archives && archives.length > 0">
             <div 
               v-for="(item, index) in archives" 
               :key="index" 
@@ -46,6 +46,7 @@
               </transition>
             </div>
           </div>
+          <el-empty v-else description="暂无归档文章"></el-empty>
         </el-card>
       </main>
       <Sidebar />
@@ -73,23 +74,6 @@ export default {
   },
 
   methods: {
-    injectMockArchives() {
-      this.archives = [
-        {
-          year: "2023",
-          posts: [
-            { id: 999, title: "深入理解Spring Boot自动配置原理", createTime: "2023-05-20" },
-            { id: 998, title: "Vue3 Composition API 实战指南", createTime: "2023-05-15" }
-          ]
-        },
-        {
-          year: "2022",
-          posts: [
-            { id: 997, title: "MySQL索引优化实战", createTime: "2022-12-10" }
-          ]
-        }
-      ]
-    },
     formatMonth(date) {
       return new Date(date).toLocaleString('zh-CN', { month: 'short' })
     },
@@ -123,17 +107,14 @@ export default {
   async created() {
     try {
       const res = await getArchivesApi()
-      if (res && res.data && res.data.length > 0) {
+      if (res && res.data) {
         this.archives = res.data
-      } else {
-        this.injectMockArchives()
       }
     } catch (error) {
       console.error("Failed to fetch archives:", error)
-      this.injectMockArchives()
     }
     
-    if (this.archives) {
+    if (this.archives && this.archives.length > 0) {
       this.archives.forEach(item => {
         if (item && item.year) {
           this.$set(this.collapsedYears, item.year, false)
