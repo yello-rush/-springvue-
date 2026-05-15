@@ -71,14 +71,6 @@
           <p v-else>暂无QQ号</p>
           <el-button v-if="webSiteInfo.qqNumber" type="primary" size="small" @click="openLink(getQQLink())">一键加好友</el-button>
         </div>
-
-        <!-- 微博弹窗内容 -->
-        <div v-if="currentSocial.type === 'weibo'" class="weibo-content">
-          <i class="fab fa-weibo weibo-large-icon"></i>
-          <p>关注我的微博获取最新动态</p>
-          <el-button v-if="webSiteInfo.weibo" type="danger" size="small" @click="openLink(webSiteInfo.weibo)">前往微博</el-button>
-          <p v-else>暂无微博链接</p>
-        </div>
       </div>
     </el-dialog>
   </el-card>
@@ -104,12 +96,6 @@ export default {
           icon: 'fab fa-qq',
           title: 'QQ联系',
           tooltip: '添加QQ好友'
-        },
-        {
-          type: 'weibo',
-          icon: 'fab fa-weibo',
-          title: '微博',
-          tooltip: '访问微博主页'
         }
       ]
     }
@@ -387,7 +373,6 @@ export default {
 
         &.wechat:hover { background: #07c160; color: white; border-color: #07c160; }
         &.qq:hover { background: #12b7f5; color: white; border-color: #12b7f5; }
-        &.weibo:hover { background: #e6162d; color: white; border-color: #e6162d; }
       }
     }
   }
@@ -466,15 +451,6 @@ export default {
       margin-bottom: 20px;
       color: var(--text-primary);
     }
-  }
-
-  .weibo-content {
-    .weibo-large-icon {
-      font-size: 4rem;
-      color: #e6162d;
-      margin-bottom: 15px;
-    }
-    p { margin-bottom: 20px; color: var(--text-secondary); }
   }
 }
 </style>

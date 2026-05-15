@@ -32,8 +32,8 @@ public class SysArticleController {
 
     @GetMapping("/detail/{id}")
     @ApiOperation(value = "文章详情")
-    public Result<SysArticleDetailVo> detail(@PathVariable Integer id) {
-        return Result.success(sysArticleService.detail(id));
+    public Result<SysArticleDetailVo> detail(@PathVariable Long id) {
+        return Result.success(sysArticleService.detail(id.intValue()));
     }
 
     @PostMapping("/add")
@@ -58,5 +58,10 @@ public class SysArticleController {
         return Result.success(sysArticleService.delete(ids));
     }
 
-
+    @PutMapping("/archive")
+    @ApiOperation(value = "文章归档")
+    @SaCheckPermission("sys:article:update")
+    public Result<Boolean> archive(@RequestBody SysArticle sysArticle) {
+        return Result.success(sysArticleService.updateById(sysArticle));
+    }
 }

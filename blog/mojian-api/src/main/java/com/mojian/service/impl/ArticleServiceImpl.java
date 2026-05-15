@@ -103,6 +103,9 @@ public class ArticleServiceImpl implements ArticleService {
             }
 
             ArticleDetailVo detailVo = sysArticleMapper.getArticleDetail(id);
+            if (detailVo == null) {
+                throw new RuntimeException("文章不存在或已下架");
+            }
             // 判断是否点赞和收藏，以及添加浏览记录
             Object userId = StpUtil.getLoginIdDefaultNull();
             if (userId != null) {

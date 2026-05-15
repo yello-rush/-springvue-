@@ -58,14 +58,13 @@
     </insert>
 
     <insert id="collect">
-        INSERT INTO sys_article_collect(user_id, article_id, status, operation_count, last_collect_time)
-        VALUES (#{userId}, #{articleId}, 1, 1, NOW())
+        INSERT INTO sys_article_collect(user_id, article_id, operation_count, last_collect_time)
+        VALUES (#{userId}, #{articleId}, 1, NOW())
     </insert>
 
     <update id="reCollect">
         UPDATE sys_article_collect
-        SET status = 1,
-            operation_count = operation_count + 1,
+        SET operation_count = operation_count + 1,
             last_collect_time = NOW()
         WHERE user_id = #{userId}
           AND article_id = #{articleId}
@@ -97,8 +96,7 @@
 
     <update id="unCollect">
         UPDATE sys_article_collect
-        SET status = 0,
-            operation_count = operation_count + 1,
+        SET operation_count = operation_count + 1,
             last_uncollect_time = NOW()
         WHERE user_id = #{userId}
           AND article_id = #{articleId}
@@ -127,7 +125,7 @@
         FROM sys_article a
         LEFT JOIN sys_category c ON a.category_id = c.id
         LEFT JOIN sys_user u ON a.user_id = u.id
-        WHERE a.status = 'publish'
+        WHERE a.status = 'publish' AND a.is_archive = 0
         <if test="tagId != null">
             AND a.id in (SELECT article_id FROM sys_article_tag WHERE tag_id = #{tagId})
         </if>
@@ -150,7 +148,6 @@
             a.content_md,
             a.content,
             a.quantity,
-            a.read_type,
             a.create_time,
             a.update_time,
             a.first_accessed_time,
@@ -175,7 +172,7 @@
         FROM
             sys_article
         WHERE
-            status = 'publish'
+            status = 'publish' AND is_archive = 1
         GROUP BY YEAR
         order by YEAR desc
     </select>
@@ -183,7 +180,7 @@
     <select id="getArticleByYear" resultType="com.mojian.vo.article.ArticleListVo">
         select id,title,create_time
         from sys_article
-        where status = 'publish' and DATE_FORMAT( create_time, '%Y' ) = #{year} order by create_time desc
+        where status = 'publish' AND is_archive = 1 and DATE_FORMAT( create_time, '%Y' ) = #{year} order by create_time desc
     </select>
 
     <select id="selectPageList" resultMap="articleResultMap">
@@ -195,6 +192,7 @@
             a.is_recommend,
             a.quantity,
             a.status,
+            a.is_archive,
             a.create_time,
             a.update_time,
             a.first_accessed_time,
@@ -250,15 +248,13 @@
         WHERE
             user_id = #{userId}
             AND article_id = #{articleId}
-            AND status = 1
     </select>
 
     <select id="getCollectStatus" resultType="java.lang.Integer">
-        SELECT status
+        SELECT CASE WHEN COUNT(id) > 0 THEN 1 ELSE 0 END as status
         FROM sys_article_collect
         WHERE user_id = #{userId}
           AND article_id = #{articleId}
-        LIMIT 1
     </select>
     <select id="selectCountByCategory" resultType="java.util.Map">
         SELECT
@@ -293,7 +289,7 @@
     <select id="getUsersByArticleCollect" resultType="java.lang.Integer">
         SELECT user_id
         FROM sys_article_collect
-        WHERE article_id = #{articleId} AND status = 1
+        WHERE article_id = #{articleId}
     </select>
 
     <insert id="recordCollectBehavior">
@@ -355,7 +351,6 @@
                 LEFT JOIN sys_user c ON b.user_id = c.id
         WHERE
             a.user_id = #{userId}
-            AND a.status = 1
         ORDER BY a.create_time DESC
     </select>
 
@@ -404,7 +399,7 @@
             AND asd.date &gt;= #{startTime}
         </if>
         WHERE
-            a.status = 'publish'
+            a.status = 'publish' AND a.is_archive = 0
         GROUP BY
             a.id, a.title, a.cover, a.summary, a.create_time, a.favorite_num, a.quantity
         ORDER BY

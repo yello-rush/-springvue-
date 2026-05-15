@@ -88,6 +88,13 @@ public class SignServiceImpl implements SignService {
         return consecutiveDays;
     }
 
+    @Override
+    public List<String> getSignDaysList() {
+        String userId = StpUtil.getLoginIdAsString();
+        String sql = "SELECT sign_date FROM sys_user_sign WHERE user_id = ? ORDER BY sign_date DESC";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("sign_date"), userId);
+    }
+
     private static long getOffset() {
         return 0; // No longer needed
     }

@@ -112,4 +112,8 @@ public class RedisConstants {
      * 网站配置
      */
     public static final String WEB_CONFIG_KEY = "sys_webconfig";
+    /**
+     * 限流key
+     */
+    public static final String RATE_LIMIT_KEY = "rate_limit:";
 }

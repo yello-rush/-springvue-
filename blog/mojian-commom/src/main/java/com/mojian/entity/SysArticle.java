@@ -70,7 +70,7 @@ public class SysArticle implements Serializable {
     private Double heatScore;
 
     @ApiModelProperty(value = "是否归档 0:否 1:是")
-    private Integer isArchived;
+    private Integer isArchive;
 
     @ApiModelProperty(value = "创建时间")
     @TableField(fill = FieldFill.INSERT)

@@ -13,22 +13,6 @@
       </div>
     </el-card>
 
-    <el-card class="section" v-if="hot.length > 0">
-      <h3>
-        <i class="fas fa-star"></i>
-        推荐文章
-      </h3>
-      <div class="post-list">
-        <router-link v-for="post in hot" :key="post.id" :to="`/post/${post.id}`" class="post-item">
-          <img v-lazy="post.cover" :key="post.cover" :alt="post.title" @error="handleImageError">
-          <div class="post-meta">
-            <h4>{{ post.title }}</h4>
-            <time>{{ post.createTime }}</time>
-          </div>
-        </router-link>
-      </div>
-    </el-card>
-
     <el-card class="section">
       <h3>
         <i class="fas fa-tags"></i>
@@ -40,7 +24,6 @@
 </template>
 
 <script>
-import { getRecommendArticlesApi } from '@/api/article'
 import Tag from './components/tagCloud.vue'
 
 export default {
@@ -50,7 +33,6 @@ export default {
   },
   data() {
     return {
-      hot: [],
       announcements: []
     }
   },
@@ -62,9 +44,6 @@ export default {
     } 
   },
   mounted() {
-    getRecommendArticlesApi().then(res => {
-      this.hot = res.data
-    })
     // 初始化公告数据
     if (this.$store.state.notice && this.$store.state.notice.right) {
       this.announcements = this.$store.state.notice.right
@@ -112,114 +91,7 @@ export default {
     }
   }
 
-  .post-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    counter-reset: post-counter;
 
-    .post-item {
-      display: flex;
-      gap: 16px;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      position: relative;
-      padding-left: 32px;
-
-      &::before {
-        content: counter(post-counter);
-        counter-increment: post-counter;
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 22px;
-        height: 22px;
-        background: var(--number-bg, #f87171);
-        color: white;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      &:nth-child(2)::before {
-        --number-bg: #fbbf24;
-      }
-
-      &:nth-child(3)::before {
-        --number-bg: #60a5fa;
-      }
-
-      &:nth-child(n+4)::before {
-        --number-bg: #9ca3af;
-      }
-
-      &:hover {
-        transform: translateX(4px);
-
-        h4 {
-          color: #6366f1;
-        }
-
-        img {
-          transform: scale(1.03);
-        }
-      }
-
-      img {
-        width: 100px;
-        height: 70px;
-        border-radius: 6px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-        &.fallback {
-          opacity: 0.7;
-        }
-      }
-
-      .post-meta {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-
-        h4 {
-          font-size: 0.95rem;
-          font-weight: 500;
-          color: var(--text-primary);
-          margin-bottom: 6px;
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          line-height: 1.4;
-          transition: color 0.3s ease;
-        }
-
-        time {
-          font-size: 0.8rem;
-          color: #8b8b8b;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-
-          &::before {
-            content: '\f017';
-            font-family: 'Font Awesome 5 Free';
-            font-size: 0.75rem;
-            opacity: 0.8;
-          }
-        }
-      }
-    }
-  }
 }
 
 .announcement {
@@ -282,25 +154,7 @@ export default {
 @media (prefers-color-scheme: dark) {
   .sidebar {
     .section {
-      .post-item {
-        &::before {
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
 
-        img {
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .post-meta {
-          time {
-            color: #777;
-          }
-        }
-
-        &:hover h4 {
-          color: #818cf8;
-        }
-      }
     }
   }
 }
@@ -367,9 +221,7 @@ export default {
   }
 }
 
-.fa-star {
-  color: #ef5151;
-}
+
 
 .fa-tags {
   color: #e329d3;

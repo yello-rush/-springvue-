@@ -29,4 +29,10 @@ public interface SignService {
      * @return
      */
     int getConsecutiveSignDays();
+
+    /**
+     * 获取签到日期列表
+     * @return
+     */
+    java.util.List<String> getSignDaysList();
 }

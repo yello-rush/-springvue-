@@ -70,10 +70,19 @@
           </template>
         </el-table-column>
         <el-table-column label="阅读量" align="center" prop="quantity"/>
+        <el-table-column label="归档状态" align="center" prop="isArchive">
+          <template #default="scope">
+            <el-tag :type="scope.row.isArchive === 1 ? 'success' : 'info'">
+              {{ scope.row.isArchive === 1 ? '已归档' : '未归档' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
-        <el-table-column label="操作" align="center" width="280" fixed="right">
+        <el-table-column label="操作" align="center" width="360" fixed="right">
           <template #default="scope">
             <el-button type="primary" link icon="Timer" @click="handleHistory(scope.row)">历史版本</el-button>
+            <el-button :type="scope.row.isArchive === 1 ? 'warning' : 'success'" link icon="Collection" @click="handleArchive(scope.row)"
+              v-permission="['sys:article:update']">{{ scope.row.isArchive === 1 ? '取消归档' : '归档' }}</el-button>
             <el-button type="primary" link icon="Edit" @click="handleUpdate(scope.row)"
               v-permission="['sys:article:update']">修改</el-button>
             <el-button type="danger" link icon="Delete" @click="handleDelete(scope.row)"
@@ -338,7 +347,7 @@ import { getCategoryListApi } from '@/api/article/category'
 import { getTagListApi } from '@/api/article/tag'
 import {
   getArticleListApi, getDetailApi, deleteArticleApi,
-  addArticleApi, updateArticleApi
+  addArticleApi, updateArticleApi, archiveArticleApi
 } from '@/api/article'
 import { uploadApi,deleteFileApi } from '@/api/file'
 import request from '@/utils/request'
@@ -591,6 +600,22 @@ const handleBatchDelete = () => {
   })
 }
 
+// 归档操作
+const handleArchive = (row: any) => {
+  const isArchive = row.isArchive === 1 ? 0 : 1
+  const text = isArchive === 1 ? '归档' : '取消归档'
+  ElMessageBox.confirm(`确认要${text}该文章吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    archiveArticleApi({ id: row.id, isArchive }).then(() => {
+      ElMessage.success(`${text}成功`)
+      getList()
+    })
+  })
+}
+
 // 删除
 const handleDelete = (row: any) => {
   ElMessageBox.confirm(`是否确认删除 ${row.title} 这篇文章?`, '警告', {
@@ -655,7 +680,8 @@ const handleHistory = async (row: any) => {
 const handleDiff = async (row: any) => {
   // 获取当前文章
   try {
-    const { data } = await getDetailApi(historyDrawer.articleId)
+    if (!historyDrawer.articleId) return;
+    const { data } = await getDetailApi(historyDrawer.articleId as any)
     diffDialog.historyVersion = row.version
     diffDialog.historyContent = row.contentMd
     diffDialog.currentContent = data ? data.contentMd : ''
@@ -672,7 +698,7 @@ const getHistoryList = async () => {
       url: `/system/article/history/list/${historyDrawer.articleId}`,
       method: 'get'
     })
-    historyDrawer.data = data.records
+    historyDrawer.data = data
   } finally {
     historyDrawer.loading = false
   }

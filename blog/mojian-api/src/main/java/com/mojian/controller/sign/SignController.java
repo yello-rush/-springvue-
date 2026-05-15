@@ -44,6 +44,7 @@ public class SignController {
         Map<String,Object> map = new HashMap<>();
         map.put("totalDays",signService.getCumulativeSignDays());
         map.put("continuousDays",signService.getConsecutiveSignDays());
+        map.put("dateList", signService.getSignDaysList());
         return Result.success(map);
     }
 

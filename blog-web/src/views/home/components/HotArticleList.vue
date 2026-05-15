@@ -45,9 +45,6 @@
               <i class="el-icon-view"></i>
               {{ formatNumber(getViewCount(item)) }}
             </span>
-            <span class="rank-trend" :class="getTrendClass(index, item)">
-              <i :class="getTrendIcon(index, item)"></i>
-            </span>
           </div>
         </div>
       </section>
@@ -158,7 +155,7 @@ export default {
       if (this.loading) return
       this.loading = true
       try {
-        const res = await ArticleService.getHotArticles(this.currentTab, false, 0, 10, this.orderBy)
+        const res = await ArticleService.getHotArticles(this.currentTab, false, 0, 10, 'views')
         this.list = Array.isArray(res?.data) ? res.data.slice(0, 10) : []
       } catch (error) {
         this.list = []
@@ -166,21 +163,7 @@ export default {
         this.loading = false
       }
     },
-    getTrendValue(index, item) {
-      if (item.trend === '上升') return 1
-      if (item.trend === '下降') return -1
-      if (typeof item.rankChange === 'number') {
-        if (item.rankChange > 0) return 1
-        if (item.rankChange < 0) return -1
-      }
-      return index < 5 ? 1 : -1
-    },
-    getTrendClass(index, item) {
-      return this.getTrendValue(index, item) > 0 ? 'up' : 'down'
-    },
-    getTrendIcon(index, item) {
-      return this.getTrendValue(index, item) > 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'
-    },
+
     startDrag(event) {
       if (event.button !== 0) return
       this.dragging = true
@@ -314,7 +297,7 @@ export default {
 .rank-item {
   min-height: 38px;
   display: grid;
-  grid-template-columns: 28px 1fr auto 20px;
+  grid-template-columns: 28px 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 6px 4px;
@@ -348,13 +331,7 @@ export default {
   color: #909399;
 }
 
-.rank-trend.up {
-  color: #67c23a;
-}
 
-.rank-trend.down {
-  color: #f56c6c;
-}
 
 .hot-rank-panel-enter-active,
 .hot-rank-panel-leave-active {

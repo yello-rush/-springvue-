@@ -72,7 +72,8 @@ public class SysFeedbackServiceImpl extends ServiceImpl<SysFeedbackMapper, SysFe
         if (updated && sysFeedback.getStatus() == 1) {
             SysFeedback oldFeedback = getById(sysFeedback.getId());
             if (oldFeedback != null && oldFeedback.getUserId() != null) {
-                notificationsUtil.publishFeedbackProcessed(oldFeedback.getUserId(), oldFeedback.getTitle());
+                String feedbackContent = oldFeedback.getContent() != null ? (oldFeedback.getContent().length() > 15 ? oldFeedback.getContent().substring(0, 15) + "..." : oldFeedback.getContent()) : "反馈";
+                notificationsUtil.publishFeedbackProcessed(oldFeedback.getUserId(), feedbackContent);
             }
         }
         return updated;

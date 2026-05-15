@@ -40,9 +40,6 @@ public class ArticleDetailVo {
     @ApiModelProperty(value = "阅读量")
     private Integer quantity;
 
-    @ApiModelProperty(value = "阅读方式")
-    private Integer readType;
-
     @ApiModelProperty(value = "评论数量")
     private Integer commentNum;
 

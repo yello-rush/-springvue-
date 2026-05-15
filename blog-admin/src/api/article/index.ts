@@ -45,3 +45,12 @@ export function deleteArticleApi(ids: any) {
   })
 }
 
+// 归档文章
+export function archiveArticleApi(data: any) {
+  return request({
+    url: '/sys/article/archive',
+    method: 'put',
+    data
+  })
+}
+

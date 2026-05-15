@@ -58,7 +58,7 @@ public class NotificationsUtil {
         List<SysUser> users = sysUserMapper.selectList(new LambdaQueryWrapper<SysUser>().eq(SysUser::getStatus, 1));
         for (SysUser user : users) {
             SysNotifications notification = SysNotifications.builder()
-                    .userId(user.getId())
+                    .userId(user.getId() != null ? user.getId().longValue() : null)
                     .type("system")
                     .title("新文章发布")
                     .message("站长发布了新文章：" + article.getTitle())
@@ -77,16 +77,18 @@ public class NotificationsUtil {
         List<Integer> userIds = sysArticleMapper.getUsersByArticleCollect(article.getId());
         if (userIds != null && !userIds.isEmpty()) {
             for (Integer userId : userIds) {
-                SysNotifications notification = SysNotifications.builder()
-                        .userId(userId.longValue())
-                        .type("system")
-                        .title("收藏文章更新")
-                        .message("你收藏的文章【" + article.getTitle() + "】已更新内容")
-                        .articleId(article.getId())
-                        .link("/article/" + article.getId())
-                        .isRead(0)
-                        .build();
-                baseMapper.insert(notification);
+                if (userId != null) {
+                    SysNotifications notification = SysNotifications.builder()
+                            .userId(userId.longValue())
+                            .type("system")
+                            .title("收藏文章更新")
+                            .message("你收藏的文章【" + article.getTitle() + "】已更新内容")
+                            .articleId(article.getId())
+                            .link("/article/" + article.getId())
+                            .isRead(0)
+                            .build();
+                    baseMapper.insert(notification);
+                }
             }
         }
     }
