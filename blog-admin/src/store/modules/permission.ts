@@ -36,7 +36,17 @@ const filterAsyncRoutes = (routes: RouteRecordRaw[], isRoot = true) => {
         const component = modules[`../../views${tmpRoute.component}.vue`];
         if (component) {
           tmpRoute.component = component;
-        } 
+        } else {
+          const compPath = (tmpRoute.component as string).startsWith('/') ? tmpRoute.component : `/${tmpRoute.component}`;
+          const alt = modules[`../../views${compPath}.vue`];
+          if (alt) {
+            tmpRoute.component = alt;
+          } else {
+            if ((tmpRoute.path && tmpRoute.path.includes('site/config')) || (tmpRoute.name && tmpRoute.name.toString().includes('作者'))) {
+              tmpRoute.component = () => import('@/views/site/config/index.vue');
+            }
+          }
+        }
       }
 
       if (tmpRoute.children) {
