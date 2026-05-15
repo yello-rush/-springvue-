@@ -163,17 +163,24 @@ export default {
         // 调用上传接口
         const response = await uploadFileApi(formData, 'avatar')
         if (response.data) {
+          let avatarUrl = response.data;
+          // Append timestamp to break browser cache so the image updates immediately
+          if (avatarUrl.includes('?')) {
+            avatarUrl += '&t=' + new Date().getTime();
+          } else {
+            avatarUrl += '?t=' + new Date().getTime();
+          }
           // 更新头像
           await updateProfileApi({ 
             id: this.user.id, 
-            avatar: response.data 
+            avatar: avatarUrl 
           })
           this.open = false;
           this.$emit('update:visible', false);
           this.$message.success('头像更新成功')
-          this.$store.state.userInfo.avatar = response.data
+          this.$store.commit('SET_USER_INFO', { ...this.$store.state.userInfo, avatar: avatarUrl });
           // 触发更新事件，通知父组件更新用户信息
-          this.$emit('update-avatar', response.data);
+          this.$emit('update-avatar', avatarUrl);
         }
       });
     },

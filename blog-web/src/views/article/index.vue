@@ -361,6 +361,7 @@ export default {
           ...res.data,
           content: res.data.contentMd || res.data.content,
           quantity: (res.data.quantity || 0) + 1, // Visual +1 locally
+          readType: res.data.readType || 1, // Fallback to 1 (free) if null
           likeNum: heatData.likeNum || res.data.likeNum,
           favoriteNum: heatData.favoriteNum || res.data.favoriteNum,
           commentNum: heatData.commentNum || res.data.commentNum,
