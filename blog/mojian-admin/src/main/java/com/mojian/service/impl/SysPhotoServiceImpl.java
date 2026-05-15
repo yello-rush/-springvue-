@@ -2,6 +2,7 @@ package com.mojian.service.impl;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.apache.commons.lang3.StringUtils;
 import com.mojian.mapper.SysPhotoMapper;
 import com.mojian.entity.SysPhoto;
 import com.mojian.service.SysPhotoService;
@@ -26,13 +27,15 @@ public class SysPhotoServiceImpl extends ServiceImpl<SysPhotoMapper, SysPhoto> i
     public IPage<SysPhoto> selectPage(SysPhoto sysPhoto) {
         LambdaQueryWrapper<SysPhoto> wrapper = new LambdaQueryWrapper<>();
         // 构建查询条件
-        wrapper.eq(sysPhoto.getId() != null, SysPhoto::getId, sysPhoto.getId());
-        wrapper.eq(sysPhoto.getAlbumId() != null, SysPhoto::getAlbumId, sysPhoto.getAlbumId());
-        wrapper.eq(sysPhoto.getDescription() != null, SysPhoto::getDescription, sysPhoto.getDescription());
-        wrapper.eq(sysPhoto.getUrl() != null, SysPhoto::getUrl, sysPhoto.getUrl());
-        wrapper.eq(sysPhoto.getRecordTime() != null, SysPhoto::getRecordTime, sysPhoto.getRecordTime());
-        wrapper.eq(sysPhoto.getSort() != null, SysPhoto::getSort, sysPhoto.getSort());
-        wrapper.eq(sysPhoto.getCreateTime() != null, SysPhoto::getCreateTime, sysPhoto.getCreateTime());
+        if (sysPhoto != null) {
+            if (sysPhoto.getAlbumId() != null) {
+                wrapper.eq(SysPhoto::getAlbumId, sysPhoto.getAlbumId());
+            }
+            if (StringUtils.isNotBlank(sysPhoto.getDescription())) {
+                wrapper.like(SysPhoto::getDescription, sysPhoto.getDescription());
+            }
+        }
+        wrapper.orderByAsc(SysPhoto::getSort).orderByDesc(SysPhoto::getCreateTime);
         return page(PageUtil.getPage(), wrapper);
     }
 
@@ -43,13 +46,15 @@ public class SysPhotoServiceImpl extends ServiceImpl<SysPhotoMapper, SysPhoto> i
     public List<SysPhoto> selectList(SysPhoto sysPhoto) {
         LambdaQueryWrapper<SysPhoto> wrapper = new LambdaQueryWrapper<>();
         // 构建查询条件
-        wrapper.eq(sysPhoto.getId() != null, SysPhoto::getId, sysPhoto.getId());
-        wrapper.eq(sysPhoto.getAlbumId() != null, SysPhoto::getAlbumId, sysPhoto.getAlbumId());
-        wrapper.eq(sysPhoto.getDescription() != null, SysPhoto::getDescription, sysPhoto.getDescription());
-        wrapper.eq(sysPhoto.getUrl() != null, SysPhoto::getUrl, sysPhoto.getUrl());
-        wrapper.eq(sysPhoto.getRecordTime() != null, SysPhoto::getRecordTime, sysPhoto.getRecordTime());
-        wrapper.eq(sysPhoto.getSort() != null, SysPhoto::getSort, sysPhoto.getSort());
-        wrapper.eq(sysPhoto.getCreateTime() != null, SysPhoto::getCreateTime, sysPhoto.getCreateTime());
+        if (sysPhoto != null) {
+            if (sysPhoto.getAlbumId() != null) {
+                wrapper.eq(SysPhoto::getAlbumId, sysPhoto.getAlbumId());
+            }
+            if (StringUtils.isNotBlank(sysPhoto.getDescription())) {
+                wrapper.like(SysPhoto::getDescription, sysPhoto.getDescription());
+            }
+        }
+        wrapper.orderByAsc(SysPhoto::getSort).orderByDesc(SysPhoto::getCreateTime);
         return list(wrapper);
     }
 

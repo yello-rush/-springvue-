@@ -30,13 +30,6 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="网站地址" prop="webUrl">
-                  <el-input v-model="form.webUrl" placeholder="请输入网站地址" />
-                </el-form-item>
-              </el-col>
-            </el-row>
           </el-tab-pane>
 
           <!-- 作者信息 Tab -->
