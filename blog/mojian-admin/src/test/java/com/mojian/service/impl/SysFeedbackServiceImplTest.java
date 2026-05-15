@@ -34,7 +34,7 @@ class SysFeedbackServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new TestableSysFeedbackService(jdbcTemplate);
+        service = new TestableSysFeedbackService(jdbcTemplate, null);
         ReflectionTestUtils.setField(service, "baseMapper", sysFeedbackMapper);
         service.currentUserId = 88L;
         when(jdbcTemplate.queryForObject(any(String.class), eq(Integer.class))).thenReturn(1);
@@ -133,8 +133,8 @@ class SysFeedbackServiceImplTest {
         private SysFeedback savedFeedback;
         private SysFeedback updatedFeedback;
 
-        private TestableSysFeedbackService(JdbcTemplate jdbcTemplate) {
-            super(jdbcTemplate);
+        private TestableSysFeedbackService(JdbcTemplate jdbcTemplate, com.mojian.utils.NotificationsUtil notificationsUtil) {
+            super(jdbcTemplate, notificationsUtil);
         }
 
         @Override
