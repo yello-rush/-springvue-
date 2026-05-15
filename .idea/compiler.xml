@@ -15,9 +15,10 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../../C/MAVEN—local repository/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
+          <entry name="$PROJECT_DIR$/../../../C/MAVEN—local repository/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
         </processorPath>
-        <module name="mojian-commom" />
         <module name="mojian-server" />
+        <module name="mojian-commom" />
         <module name="mojian-auth" />
         <module name="mojian-api" />
         <module name="mojian-admin" />
@@ -27,14 +28,14 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="blog" options="-parameters" />
-      <module name="mojian-admin" options="-parameters" />
-      <module name="mojian-api" options="-parameters" />
-      <module name="mojian-auth" options="-parameters" />
-      <module name="mojian-commom" options="-parameters" />
-      <module name="mojian-file" options="-parameters" />
+      <module name="blog" options="-parameters -T 1C" />
+      <module name="mojian-admin" options="-parameters -T 1C" />
+      <module name="mojian-api" options="-parameters -T 1C" />
+      <module name="mojian-auth" options="-parameters -T 1C" />
+      <module name="mojian-commom" options="-parameters -T 1C" />
+      <module name="mojian-file" options="-parameters -T 1C" />
       <module name="mojian-quartz" options="-parameters" />
-      <module name="mojian-server" options="-parameters" />
+      <module name="mojian-server" options="-parameters -T 1C" />
     </option>
   </component>
 </project>
