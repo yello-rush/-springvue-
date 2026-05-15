@@ -67,11 +67,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                    <!-- 开启并行编译，提高编译速度 -->
-                    <compilerArgs>
-                        <arg>-T</arg>
-                        <arg>1C</arg>
-                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
