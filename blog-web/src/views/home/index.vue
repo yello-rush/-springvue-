@@ -93,6 +93,15 @@ export default {
   },
   methods: {
     normalizeImageUrl,
+    resolveLocalImage(cover, id) {
+      const url = this.normalizeImageUrl(cover)
+      if (!url) {
+        const idx = (Number(id) % 10) + 1
+        return `/gallery/cover-${idx}.jpg`
+      }
+      if (/^https?:\/\//i.test(url)) return url
+      return url.startsWith('/') ? url : `/${url}`
+    },
     getCoverBg(cover) {
       const url = normalizeImageUrl(cover);
       return url ? `url(${url})` : '';
@@ -143,7 +152,7 @@ export default {
         if (res && res.data && res.data.length > 0) {
           this.carouselItems = res.data.map((item) => ({
             ...item,
-            image_url: this.normalizeImageUrl(item.cover),
+            image_url: this.resolveLocalImage(item.cover, item.id),
             link: `/post/${item.id}`,
             title: item.title,
             summary: item.summary

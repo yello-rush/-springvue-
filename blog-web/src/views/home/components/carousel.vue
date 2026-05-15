@@ -26,7 +26,6 @@
         @click.stop="goToLink(slide.link)"
       >
         <picture>
-          <source v-if="slide.image_url && slide.image_url.match(/\.(jpg|png|jpeg)$/i)" type="image/webp" :srcset="getWebpSrcset(slide.image_url)" sizes="100vw">
           <img 
             :loading="index === 0 ? 'eager' : 'lazy'" 
             :fetchpriority="index === 0 ? 'high' : 'auto'"
@@ -80,19 +79,6 @@ const displaySlides = computed(() => {
   if (props.slides.length === 1) return props.slides
   return [...props.slides, props.slides[0]]
 })
-
-const getWebpSrcset = (url) => {
-  if (!url) return ''
-  
-  // 处理外部图片链接（如 picsum.photos）或无扩展名的情况
-  if (!url.match(/\.(jpg|png|jpeg)$/i)) {
-    return '' // 没有匹配到扩展名的不生成 srcset，直接让 img 的 src 去处理
-  }
-  
-  // Simulate multi-resolution by appending suffixes. In production, these should be real paths.
-  const base = url.replace(/\.(jpg|png|jpeg)$/i, '')
-  return `${base}_720p.webp 720w, ${base}_1080p.webp 1080w, ${base}_2x.webp 2000w`
-}
 
 const emit = defineEmits(['click'])
 

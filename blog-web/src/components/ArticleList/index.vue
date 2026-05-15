@@ -5,7 +5,7 @@
         <article v-for="post in articles" :key="post.id" class="post-card" @click="$emit('article-click', post.id)">
           <div class="card-cover">
             <img
-              v-lazy="getArticleCover(post)"
+              :src="getArticleCover(post)"
               :alt="post.title"
               loading="lazy"
               decoding="async"
@@ -102,12 +102,16 @@ export default {
     getLikeCount,
     getFavoriteCount,
     getArticleCover(post) {
-      if (post.cover) {
+      if (post && post.cover) {
         const normalized = normalizeImageUrl(post.cover)
-        return getOptimizedImageUrl(normalized, { width: 720, quality: 75 })
+        if (/^https?:\/\//i.test(normalized)) {
+          return getOptimizedImageUrl(normalized, { width: 720, quality: 75 })
+        }
+        const local = normalized.startsWith('/') ? normalized : `/${normalized}`
+        return local
       }
-      // If no cover, try to match local image by article id
-      return `/gallery/article-${post.id}.jpg`;
+      const idx = (Number(post && post.id) % 10) + 1
+      return `/gallery/cover-${idx}.jpg`
     },
     formatTime(time) {
       if (!time) return '';
