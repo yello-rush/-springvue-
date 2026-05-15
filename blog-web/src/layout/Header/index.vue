@@ -11,6 +11,13 @@
           <img v-if="$store.state.webSiteInfo.logo" :src="$store.state.webSiteInfo.logo" :alt="$store.state.webSiteInfo.name">
           <span class="logo-text">{{$store.state.webSiteInfo.name}}</span>
         </router-link>
+        
+        <!-- 悬浮简介面板 -->
+        <div class="site-info-hover">
+          <div class="info-content">
+            <p>{{ $store.state.webSiteInfo.summary || '这是一个基于Spring+Vue的个人博客系统' }}</p>
+          </div>
+        </div>
       </div>
 
       <div class="nav-center">
@@ -468,27 +475,91 @@ export default {
 .nav-left {
   display: flex;
   align-items: center;
+  position: relative;
   
   .logo {
     display: flex;
     align-items: center;
     text-decoration: none;
-    gap: 10px;
-
+    gap: 12px;
+    padding: 5px 0;
+    
     img {
-      width: 40px;
-      height: 40px;
+      height: 36px;
+      width: 36px;
       border-radius: 50%;
       object-fit: cover;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.5s ease;
     }
-
+    
     .logo-text {
-      font-size: 1.2rem;
-      font-weight: 700;
+      font-size: 1.4rem;
+      font-weight: 600;
       color: var(--text-primary);
+      font-family: "LXGW WenKai", sans-serif;
       background: linear-gradient(120deg, $primary, #8b5cf6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+    }
+
+    &:hover img {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* 悬浮简介面板样式 */
+  &:hover .site-info-hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .site-info-hover {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: max-content;
+    max-width: 300px;
+    margin-top: 15px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1010;
+
+    /* 顶部的小三角 */
+    &::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 25px;
+      width: 12px;
+      height: 12px;
+      background: var(--surface);
+      transform: rotate(45deg);
+      border-left: 1px solid rgba(var(--border-color-rgb), 0.1);
+      border-top: 1px solid rgba(var(--border-color-rgb), 0.1);
+      z-index: 1;
+    }
+
+    .info-content {
+      position: relative;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(var(--border-color-rgb), 0.1);
+      z-index: 2;
+
+      p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        font-family: "LXGW WenKai", sans-serif;
+        word-break: break-all;
+      }
     }
   }
 }
