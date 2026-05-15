@@ -1,9 +1,9 @@
 <template>
     <div class="sidebar-container" :class="settingsStore.sidebarStyle">
-      <el-tooltip content="博客后台" placement="right" :disabled="!isCollapse">
-        <a href="javascript:void(0)" @click="goHome" v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }" style="text-decoration: none;" :title="isCollapse ? '' : '博客后台'" aria-label="博客后台" role="button">
-          <el-icon class="logo-icon" :size="24" :color="settingsStore.themeColor" style="margin-right: 8px;"><Platform /></el-icon>
-          <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">博客后台</span>
+      <el-tooltip content="返回前台首页" placement="right" :disabled="!isCollapse">
+        <a href="http://localhost:80" target="_blank" v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }" style="text-decoration: none;" :title="isCollapse ? '' : '返回前台首页'" aria-label="返回前台首页" role="button">
+          <img src="/avatar/blogger.jpg" alt="logo" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
+          <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">习习中的博客</span>
         </a>
       </el-tooltip>
       <el-scrollbar>

@@ -37,31 +37,28 @@
 
           <el-tab-pane label="互动数据" name="interactions">
             <div class="interaction-list tab-content-wrap">
-              <div class="interaction-item" @click="goTo('/message/comment')">
+              <div class="interaction-item static-item">
                 <el-icon class="icon comment"><ChatLineRound /></el-icon>
                 <div class="info">
                   <div class="title">新增评论</div>
                   <div class="desc">自上次登录新增 {{ notificationData.newComments }} 条</div>
                 </div>
-                <el-icon class="arrow"><ArrowRight /></el-icon>
               </div>
               
-              <div class="interaction-item" @click="goTo('/message/message')">
+              <div class="interaction-item static-item">
                 <el-icon class="icon like"><Pointer /></el-icon>
                 <div class="info">
                   <div class="title">新增点赞</div>
-                  <div class="desc">自上次登录新增 {{ notificationData.newLikes }} 次</div>
+                  <div class="desc">自上次登录新增 {{ notificationData.newLikes }} 个</div>
                 </div>
-                <el-icon class="arrow"><ArrowRight /></el-icon>
               </div>
               
-              <div class="interaction-item" @click="goTo('/article/article')">
+              <div class="interaction-item static-item">
                 <el-icon class="icon favorite"><Star /></el-icon>
                 <div class="info">
                   <div class="title">新增收藏</div>
                   <div class="desc">自上次登录新增 {{ notificationData.newFavorites }} 次</div>
                 </div>
-                <el-icon class="arrow"><ArrowRight /></el-icon>
               </div>
             </div>
           </el-tab-pane>
@@ -366,7 +363,11 @@ const vClickOutside = {
     transition: all 0.3s;
     background: var(--el-fill-color-light);
     
-    &:hover {
+    &.static-item {
+      cursor: default;
+    }
+    
+    &:not(.static-item):hover {
       background: v-bind('`${settingsStore.themeColor}1a`');
       transform: translateX(4px);
     }

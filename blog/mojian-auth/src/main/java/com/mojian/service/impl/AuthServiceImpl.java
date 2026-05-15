@@ -17,6 +17,10 @@ import com.mojian.exception.ServiceException;
 import com.mojian.mapper.SysMenuMapper;
 import com.mojian.mapper.SysRoleMapper;
 import com.mojian.mapper.SysUserMapper;
+import com.mojian.mapper.SysPhotoMapper;
+import com.mojian.mapper.SysAlbumMapper;
+import com.mojian.entity.SysAlbum;
+import com.mojian.entity.SysPhoto;
 import com.mojian.utils.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,10 +49,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final SysUserMapper sysUserMapper;
 
-    private final String[] avatarList = {
-            "/visitor.png"
-    };
     private final SysRoleMapper sysRoleMapper;
+
+    private final SysAlbumMapper sysAlbumMapper;
+
+    private final SysPhotoMapper sysPhotoMapper;
 
     @Override
     public LoginUserInfo login(LoginDTO loginDTO) {
@@ -136,8 +141,21 @@ public class AuthServiceImpl implements AuthService {
         if (sysUser != null) {
             throw new ServiceException("当前邮箱已注册，请前往登录");
         }
-        //获取随机头像
-        String avatar = avatarList[(int) (Math.random() * avatarList.length)];
+        
+        String avatar = "/visitor.png"; // 兜底头像
+        try {
+            SysAlbum defaultAlbum = sysAlbumMapper.selectOne(new LambdaQueryWrapper<SysAlbum>().eq(SysAlbum::getName, "默认头像库").last("limit 1"));
+            if (defaultAlbum != null) {
+                List<SysPhoto> photos = sysPhotoMapper.selectList(new LambdaQueryWrapper<SysPhoto>().eq(SysPhoto::getAlbumId, defaultAlbum.getId()));
+                if (photos != null && !photos.isEmpty()) {
+                    int randomIndex = (int) (Math.random() * photos.size());
+                    avatar = photos.get(randomIndex).getUrl();
+                }
+            }
+        } catch (Exception e) {
+            log.error("获取随机头像失败", e);
+        }
+
         sysUser = SysUser.builder()
                 .username(dto.getEmail())
                 .password(BCrypt.hashpw(dto.getPassword()))
