@@ -37,11 +37,6 @@
                             <el-checkbox :value="item.id" />
                         </span>
                         <el-image class="album-cover" :src="item.cover" />
-                        <div class="album-lock" v-if="item.isLock">
-                            <el-icon>
-                                <Lock />
-                            </el-icon>
-                        </div>
                         <div class="album-info">
                             <div class="album-name">{{ item.name }}</div>
                             <div class="album-description">{{ item.description }}</div>
@@ -79,12 +74,6 @@
                 <el-form-item label="描述" prop="description">
                     <el-input v-model="albumForm.description" type="textarea" :rows="4" show-word-limit
                         placeholder="请输入描述" clearable />
-                </el-form-item>
-                <el-form-item label="是否加密" prop="isLock">
-                    <el-switch v-model="albumForm.isLock" :active-value="1" :inactive-value="0" />
-                </el-form-item>
-                <el-form-item label="密码" prop="password" v-if="albumForm.isLock === 1">
-                    <el-input v-model="albumForm.password" placeholder="请输入密码" clearable />
                 </el-form-item>
             </el-form>
 
@@ -145,20 +134,14 @@ const albumForm = reactive<any>({
     id: undefined,
     name: '',
     description: '',
-    cover: '',
-    isLock: 0,
-    password: '',
+    cover: ''
 })
 
 // 表单校验规则
 const rules = reactive<FormRules>({
     name: [
         { required: true, message: '请输入名称', trigger: 'blur' }
-    ],
-    isLock: [
-        { required: true, message: '请选择是否加密', trigger: 'blur' }
-    ],
-
+    ]
 })
 
 // 获取标签列表
@@ -227,8 +210,6 @@ const handleAdd = () => {
     albumForm.name = ''
     albumForm.description = ''
     albumForm.cover = ''
-    albumForm.isLock = 0
-    albumForm.password = ''
 }
 
 // 修改说说

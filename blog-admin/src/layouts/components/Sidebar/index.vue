@@ -1,7 +1,7 @@
 <template>
     <div class="sidebar-container" :class="settingsStore.sidebarStyle">
       <el-tooltip content="返回前台首页" placement="right" :disabled="!isCollapse">
-        <a href="http://localhost:80" target="_blank" v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }" style="text-decoration: none;" :title="isCollapse ? '' : '返回前台首页'" aria-label="返回前台首页" role="button">
+        <a :href="webUrl" target="_blank" v-if="settingsStore.showLogo" class="logo-container" :class="{ 'dark': settingsStore.theme === 'dark' }" style="text-decoration: none;" :title="isCollapse ? '' : '返回前台首页'" aria-label="返回前台首页" role="button">
           <img :src="siteLogo" alt="logo" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
           <span v-show="!isCollapse" class="logo-text" :class="{ 'light': settingsStore.theme === 'dark' ? false : settingsStore.sidebarStyle === 'light' }">{{ siteName }}</span>
         </a>
@@ -38,12 +38,14 @@ import { getWebConfigApi } from '@/api/site/config'
 
 const siteLogo = ref('@/assets/logo.png')
 const siteName = ref('习习中的博客')
+const webUrl = ref('http://localhost:80')
 
 onMounted(() => {
   getWebConfigApi().then((res) => {
     if (res.data) {
       siteLogo.value = res.data.logo || siteLogo.value
       siteName.value = res.data.name || siteName.value
+      webUrl.value = res.data.webUrl || webUrl.value
     }
   })
 })

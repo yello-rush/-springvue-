@@ -23,6 +23,16 @@ public class SysOperateLogServiceImpl extends ServiceImpl<SysOperateLogMapper, S
     @Override
     public IPage<SysOperateLog> listSysOperateLog(SysOperateLog sysOperateLog) {
         LambdaQueryWrapper<SysOperateLog> wrapper = new LambdaQueryWrapper<>();
+        if (sysOperateLog.getUsername() != null && !sysOperateLog.getUsername().isEmpty()) {
+            wrapper.like(SysOperateLog::getUsername, sysOperateLog.getUsername());
+        }
+        if (sysOperateLog.getRequestUrl() != null && !sysOperateLog.getRequestUrl().isEmpty()) {
+            wrapper.like(SysOperateLog::getRequestUrl, sysOperateLog.getRequestUrl());
+        }
+        if (sysOperateLog.getIp() != null && !sysOperateLog.getIp().isEmpty()) {
+            wrapper.like(SysOperateLog::getIp, sysOperateLog.getIp());
+        }
+        wrapper.orderByDesc(SysOperateLog::getCreateTime);
         return page(PageUtil.getPage(), wrapper);
     }
 }

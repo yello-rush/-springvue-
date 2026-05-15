@@ -44,6 +44,10 @@ const filterAsyncRoutes = (routes: RouteRecordRaw[], isRoot = true) => {
           } else {
             if ((tmpRoute.path && tmpRoute.path.includes('site/config')) || (tmpRoute.name && tmpRoute.name.toString().includes('作者'))) {
               tmpRoute.component = () => import('@/views/site/config/index.vue');
+            } else if ((tmpRoute.path && tmpRoute.path.includes('site/gallery')) || (tmpRoute.name && tmpRoute.name.toString().includes('图库'))) {
+              tmpRoute.component = () => import('@/views/site/gallery/index.vue');
+            } else if ((tmpRoute.path && tmpRoute.path.includes('system/log/operation')) || (tmpRoute.name && tmpRoute.name.toString().includes('日志'))) {
+              tmpRoute.component = () => import('@/views/system/log/operation.vue');
             }
           }
         }

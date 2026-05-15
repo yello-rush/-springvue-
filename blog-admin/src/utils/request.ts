@@ -36,16 +36,28 @@ service.interceptors.response.use(
       const errorDetail = res.extra?.errorDetail || res.message || '请求错误'
       ElMessage.error(`${alertMessage}：${errorDetail}`)
       if (res.code === 401) {
-  
-        ElMessageBox.confirm("当前页面已失效，请重新登录", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning",
-        })
-        .then(() => {
-          const userStore = useUserStore()
-          userStore.logout()
-        })
+        if (!isRelogin.show) {
+          isRelogin.show = true;
+          ElMessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
+            confirmButtonText: '重新登录',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            const userStore = useUserStore()
+            userStore.logout().then(() => {
+              // 如果是返回首页引起的401，不跳转登录页而是继续跳转
+              if (window.location.pathname !== '/login') {
+                // 只有真正点击重新登录时才刷新重定向
+                location.reload()
+              }
+            })
+          })
+          .catch(() => {
+            isRelogin.show = false;
+          });
+        }
+        return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
       }
       return Promise.reject(new Error(errorDetail))
     }
@@ -55,7 +67,12 @@ service.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const userStore = useUserStore()
-      userStore.logout()
+      userStore.logout().then(() => {
+        if (window.location.pathname !== '/login') {
+          // 不要强行刷新，而是静默失败
+          console.warn('Token invalid or missing');
+        }
+      })
     }else if (error.response?.status === 500) {
       ElMessage.error('后端接口连接异常')
     }else{
